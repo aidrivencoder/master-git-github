@@ -5,9 +5,10 @@ import { Quiz as QuizType } from '@/types/tutorial'
 
 interface QuizProps {
   quiz: QuizType
+  onComplete?: () => void
 }
 
-export function Quiz({ quiz }: QuizProps) {
+export function Quiz({ quiz, onComplete }: QuizProps) {
   const [answers, setAnswers] = useState<number[]>(new Array(quiz.questions.length).fill(-1))
   const [submitted, setSubmitted] = useState(false)
 
@@ -15,8 +16,11 @@ export function Quiz({ quiz }: QuizProps) {
     return acc + (answer === quiz.questions[index].correctAnswer ? 1 : 0)
   }, 0)
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setSubmitted(true)
+    if (score >= quiz.passingScore && onComplete) {
+      await onComplete()
+    }
   }
 
   return (
@@ -30,7 +34,7 @@ export function Quiz({ quiz }: QuizProps) {
             {question.options.map((option, optionIndex) => (
               <label
                 key={optionIndex}
-                className="flex items-center space-x-3 p-3 rounded-lg border cursor-pointer hover:bg-gray-50"
+                className="flex items-center space-x-3 p-3 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
               >
                 <input
                   type="radio"
@@ -45,7 +49,7 @@ export function Quiz({ quiz }: QuizProps) {
                   disabled={submitted}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-gray-900">{option}</span>
+                <span className="text-gray-900 dark:text-gray-100">{option}</span>
               </label>
             ))}
           </div>
@@ -56,16 +60,16 @@ export function Quiz({ quiz }: QuizProps) {
         <button
           onClick={handleSubmit}
           disabled={answers.includes(-1)}
-          className="w-full px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-4 py-2 text-sm font-medium text-white bg-primary-600 dark:bg-primary-500 rounded-md hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Submit Quiz
         </button>
       ) : (
-        <div className="p-4 rounded-lg bg-gray-50">
+        <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
           <p className="font-medium">
             Score: {score} / {quiz.questions.length}
           </p>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             {score >= quiz.passingScore ? 
               'Congratulations! You passed the quiz!' : 
               'Keep practicing and try again!'}
