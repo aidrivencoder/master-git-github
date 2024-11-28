@@ -1,7 +1,7 @@
 import { initializeApp, getApps, cert, type ServiceAccount } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
+import { Logger } from '@/lib/utils/logger'
 
-// Ensure we only initialize once
 const apps = getApps()
 
 if (!apps.length) {
@@ -9,17 +9,18 @@ if (!apps.length) {
     const serviceAccount: ServiceAccount = {
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
     }
 
     initializeApp({
-      credential: cert(serviceAccount),
-      databaseURL: `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.firebaseio.com`,
+      credential: cert(serviceAccount)
     })
+
+    Logger.info('Firebase Admin initialized successfully', 'FirebaseAdmin')
   } catch (error) {
-    console.error('Error initializing admin app:', error)
+    Logger.error('Failed to initialize Firebase Admin', 'FirebaseAdmin', error)
+    throw error
   }
 }
 
 export const adminDb = getFirestore()
-export default getApps()[0]
