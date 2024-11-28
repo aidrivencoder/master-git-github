@@ -19,8 +19,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
-        // Transform Firebase user to our User type and fetch additional data
-        // Implementation details here
+        const userData: User = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          displayName: firebaseUser.displayName || '',
+          photoURL: firebaseUser.photoURL || undefined,
+          subscription: {
+            tier: 'free'
+          },
+          progress: {
+            completedTutorials: []
+          },
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+        setUser(userData)
       } else {
         setUser(null)
       }
