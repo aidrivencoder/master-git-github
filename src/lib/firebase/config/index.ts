@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app'
-import { getAuth, Auth } from 'firebase/auth'
+import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { Logger } from '@/lib/utils/logger'
 
@@ -13,22 +13,23 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 }
 
-function initializeFirebase() {
+function getFirebaseApp() {
   try {
     if (!firebaseConfig.apiKey) {
       throw new Error('Firebase configuration is missing')
     }
 
-    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-    const auth: Auth = getAuth(app)
-    const db = getFirestore(app)
-
-    Logger.info('Firebase initialized successfully', 'Firebase')
-    return { app, auth, db }
+    return getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
   } catch (error) {
     Logger.error('Failed to initialize Firebase', 'Firebase', error)
     throw error
   }
 }
 
-export const { app, auth, db } = initializeFirebase()
+const app = getFirebaseApp()
+const auth = getAuth(app)
+const db = getFirestore(app)
+
+Logger.info('Firebase initialized successfully', 'Firebase')
+
+export { app, auth, db }
