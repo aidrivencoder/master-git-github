@@ -1,11 +1,8 @@
-import dynamic from 'next/dynamic'
-import '@uiw/react-markdown-preview/markdown.css'
-import { CodeBlock } from './CodeBlock'
-
-const MarkdownPreview = dynamic(
-  () => import('@uiw/react-markdown-preview'),
-  { ssr: false }
-)
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 
 interface MarkdownContentProps {
   content: string
@@ -21,31 +18,36 @@ type CodeComponentProps = {
 export function MarkdownContent({ content }: MarkdownContentProps) {
   return (
     <div className="prose prose-lg dark:prose-invert max-w-none space-y-6">
-      <MarkdownPreview
-        source={content}
-        style={{
-          backgroundColor: 'transparent',
-          padding: 0,
-        }}
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
         components={{
-          code: ({ inline, children = '', className }: CodeComponentProps) => {
+          code: ({ inline, className, children }: CodeComponentProps) => {
             if (inline) {
               return (
                 <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm">
-                  {children}
+                  {String(children)}
                 </code>
               )
             }
-            const language = className?.replace('language-', '') || 'text'
-            const codeContent = Array.isArray(children) 
-              ? children.join('') 
-              : String(children).replace(/\n$/, '')
+
+            const match = /language-(\w+)/.exec(className || '')
+            const language = match ? match[1] : ''
+            
             return (
-              <div className="my-6">
-                <CodeBlock
-                  code={codeContent}
+              <div className="rounded-lg overflow-hidden my-4">
+                <SyntaxHighlighter
                   language={language}
-                />
+                  style={tomorrow}
+                  customStyle={{
+                    margin: 0,
+                    padding: '1rem',
+                    backgroundColor: '#1a1a1a',
+                    borderRadius: '0.5rem'
+                  }}
+                >
+                  {String(children).trim()}
+                </SyntaxHighlighter>
               </div>
             )
           },
@@ -71,7 +73,9 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
             <li className="ml-4">{children}</li>
           )
         }}
-      />
+      >
+        {content}
+      </ReactMarkdown>
     </div>
   )
 }
