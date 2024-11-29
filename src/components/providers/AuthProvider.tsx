@@ -30,7 +30,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             tier: 'free'
           },
           progress: {
-            completedTutorials: []
+            completedTutorials: [],
+            achievements: []
           },
           createdAt: new Date(),
           updatedAt: new Date()

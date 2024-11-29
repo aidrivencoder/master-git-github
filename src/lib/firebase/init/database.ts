@@ -28,7 +28,7 @@ async function markInitialized() {
     await adminDb.doc(INIT_DOC_PATH).set({
       timestamp: Timestamp.now(),
       version: '1.0'
-    }, { timeout: 30000 })
+    }, { merge: true })
   } catch (error) {
     Logger.error('Failed to mark as initialized', 'DatabaseInit', error)
     throw error
