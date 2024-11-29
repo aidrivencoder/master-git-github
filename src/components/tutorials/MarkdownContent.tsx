@@ -31,12 +31,12 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
             <li className="ml-4">{children}</li>
           ),
           code: ({ children }) => (
-            <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm">
+            <code className="px-1.5 py-0.5 rounded text-sm">
               {children}
             </code>
           ),
           pre: ({ children }) => (
-            <pre className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+            <pre className="bg-gray-900 rounded-lg p-4 overflow-x-auto text-white">
               {children}
             </pre>
           )
