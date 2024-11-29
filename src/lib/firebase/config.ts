@@ -3,7 +3,7 @@
 import { initializeApp, getApps } from 'firebase/app'
 import { getAuth, connectAuthEmulator } from 'firebase/auth'
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
-import { Logger } from '@/lib/utils/logger'
+import { Logger } from '../utils/logger'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -25,12 +25,7 @@ function initializeFirebase() {
     const auth = getAuth(app)
     const db = getFirestore(app)
 
-    if (process.env.NODE_ENV === 'development') {
-      if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-        connectAuthEmulator(auth, 'http://localhost:9099')
-        connectFirestoreEmulator(db, 'localhost', 8080)
-      }
-    }
+    // Removed emulator connections since they're not set up
 
     Logger.info('Firebase initialized successfully', 'Firebase')
     return { app, auth, db }
