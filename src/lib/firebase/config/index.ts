@@ -1,6 +1,6 @@
-import { initializeApp, getApps } from 'firebase/app'
+import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { getFirestore, enableIndexedDbPersistence, initializeFirestore, CACHE_SIZE_UNLIMITED, connectFirestoreEmulator } from 'firebase/firestore'
 import { Logger } from '@/lib/utils/logger'
 
 const firebaseConfig = {
@@ -13,23 +13,26 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 }
 
-function getFirebaseApp() {
-  try {
-    if (!firebaseConfig.apiKey) {
-      throw new Error('Firebase configuration is missing')
-    }
-
-    return getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-  } catch (error) {
-    Logger.error('Failed to initialize Firebase', 'Firebase', error)
-    throw error
-  }
+if (!firebaseConfig.apiKey) {
+  throw new Error('Firebase configuration is missing')
 }
 
-const app = getFirebaseApp()
-const auth = getAuth(app)
-const db = getFirestore(app)
+const app = initializeApp(firebaseConfig)
+const auth = getAuth()
 
-Logger.info('Firebase initialized successfully', 'Firebase')
+// Initialize Firestore with persistence settings
+const db = initializeFirestore(app, {
+  cacheSizeBytes: CACHE_SIZE_UNLIMITED
+})
+
+if (typeof window !== 'undefined') {
+  enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+      Logger.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.')
+    } else if (err.code === 'unimplemented') {
+      Logger.warn('Browser doesn\'t support persistence')
+    }
+  })
+}
 
 export { app, auth, db }
