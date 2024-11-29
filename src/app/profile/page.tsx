@@ -65,14 +65,6 @@ export default function ProfilePage() {
                         {user?.subscription?.tier ? `${user.subscription.tier.charAt(0).toUpperCase()}${user.subscription.tier.slice(1)} Plan` : 'No Plan'}
                       </dd>
                     </div>
-                    <div className="py-4">
-                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Completed Tutorials
-                      </dt>
-                      <dd className="mt-1 text-sm text-gray-900 dark:text-white">
-                        {user?.progress?.completedTutorials?.length || 0}
-                      </dd>
-                    </div>
                   </dl>
                 </div>
               </div>
