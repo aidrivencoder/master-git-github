@@ -52,14 +52,9 @@ export default function TutorialPage({ params }: TutorialPageProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Simulate loading to prevent UI flash
-    const timer = setTimeout(() => {
-      const fetchedTutorial = getTutorialById(params.id)
-      setTutorial(fetchedTutorial || null)
-      setLoading(false)
-    }, 500)
-
-    return () => clearTimeout(timer)
+    const fetchedTutorial = getTutorialById(params.id)
+    setTutorial(fetchedTutorial || null)
+    setLoading(false)
   }, [params.id])
 
   if (loading) {
