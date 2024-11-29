@@ -1,6 +1,6 @@
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
 import { setDoc } from 'firebase/firestore'
-import { initializeFirebase } from '../config'
+import { db } from '../config'
 import { Tutorial } from '@/types/tutorial'
 import { Logger } from '@/lib/utils/logger'
 import { tutorialsList } from '@/lib/tutorials'
@@ -11,7 +11,6 @@ const RETRY_DELAY = 1000
 
 async function initializeTutorialsIfNeeded() {
   try {
-    const { db } = initializeFirebase()
     const tutorialsRef = collection(db, TUTORIALS_COLLECTION)
     const snapshot = await getDocs(tutorialsRef)
     
@@ -45,7 +44,6 @@ async function retryOperation<T>(operation: () => Promise<T>, retries = MAX_RETR
 export async function getTutorials(): Promise<Tutorial[]> {
   await initializeTutorialsIfNeeded()
   
-  const { db } = initializeFirebase()
   return retryOperation(async () => {
     const tutorialsRef = collection(db, TUTORIALS_COLLECTION)
     const snapshot = await getDocs(tutorialsRef)
@@ -56,7 +54,6 @@ export async function getTutorials(): Promise<Tutorial[]> {
 export async function getTutorialById(id: string): Promise<Tutorial | null> {
   await initializeTutorialsIfNeeded()
   
-  const { db } = initializeFirebase()
   return retryOperation(async () => {
     const tutorialRef = doc(db, TUTORIALS_COLLECTION, id)
     const tutorialDoc = await getDoc(tutorialRef)
@@ -72,7 +69,6 @@ export async function getTutorialById(id: string): Promise<Tutorial | null> {
 export async function getPublicTutorials(): Promise<Tutorial[]> {
   await initializeTutorialsIfNeeded()
   
-  const { db } = initializeFirebase()
   return retryOperation(async () => {
     const tutorialsRef = collection(db, TUTORIALS_COLLECTION)
     const q = query(tutorialsRef, where('isPremium', '==', false))
