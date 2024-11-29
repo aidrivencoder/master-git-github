@@ -1,10 +1,17 @@
 'use client'
 
+import { useCallback } from 'react'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { DisplayNameForm } from '@/components/profile/DisplayNameForm'
 
 export default function ProfilePage() {
   const { user } = useAuth()
+
+  const handleUpdate = useCallback(() => {
+    // Force a re-render of the auth context
+    window.location.reload()
+  }, [])
 
   return (
     <ProtectedRoute>
@@ -32,13 +39,20 @@ export default function ProfilePage() {
                     </div>
                   )}
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      {user?.displayName || 'User'}
-                    </h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {user?.email}
                     </p>
                   </div>
+                </div>
+
+                <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    Update Profile
+                  </h3>
+                  <DisplayNameForm
+                    currentDisplayName={user?.displayName || ''}
+                    onUpdate={handleUpdate}
+                  />
                 </div>
 
                 <div className="mt-6 border-t border-gray-200 dark:border-gray-700">
