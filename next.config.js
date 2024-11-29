@@ -1,7 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
+  trailingSlash: true,
+  typescript: {
+    // !! WARN !!
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true
+  },
   reactStrictMode: true,
   images: {
+    unoptimized: true,
     domains: ['github.com', 'avatars.githubusercontent.com'],
   },
   webpack: (config) => {

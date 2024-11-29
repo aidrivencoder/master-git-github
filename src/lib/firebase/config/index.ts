@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
+import { getAuth, Auth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { Logger } from '@/lib/utils/logger'
 
@@ -20,7 +20,7 @@ function initializeFirebase() {
     }
 
     const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-    const auth = getAuth(app)
+    const auth: Auth = getAuth(app)
     const db = getFirestore(app)
 
     Logger.info('Firebase initialized successfully', 'Firebase')

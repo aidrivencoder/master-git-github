@@ -62,7 +62,7 @@ export default function ProfilePage() {
                         Subscription
                       </dt>
                       <dd className="mt-1 text-sm text-gray-900 dark:text-white">
-                        {user?.subscription.tier.charAt(0).toUpperCase() + user?.subscription.tier.slice(1)} Plan
+                        {user?.subscription?.tier ? `${user.subscription.tier.charAt(0).toUpperCase()}${user.subscription.tier.slice(1)} Plan` : 'No Plan'}
                       </dd>
                     </div>
                     <div className="py-4">
@@ -70,7 +70,7 @@ export default function ProfilePage() {
                         Completed Tutorials
                       </dt>
                       <dd className="mt-1 text-sm text-gray-900 dark:text-white">
-                        {user?.progress.completedTutorials.length || 0}
+                        {user?.progress?.completedTutorials?.length || 0}
                       </dd>
                     </div>
                   </dl>
