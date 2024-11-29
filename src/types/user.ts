@@ -1,3 +1,5 @@
+import { Achievement } from './achievement'
+
 export interface User {
   id: string
   email: string
