@@ -1,7 +1,7 @@
-import { initializeApp, getApps, getApp } from 'firebase/app'
+import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore'
-import { getAnalytics, isSupported } from 'firebase/analytics'
+import { getFirestore } from 'firebase/firestore'
+import { Logger } from '@/lib/utils/logger'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -10,39 +10,26 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 }
 
-// Initialize Firebase
-let app
-let db
-let auth
-let analytics = null
+let initialized = false
+let app, auth, db
 
-try {
-  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
-  db = getFirestore(app)
-  auth = getAuth(app)
+function initializeFirebase() {
+  if (initialized) return { app, auth, db }
 
-  // Enable offline persistence
-  if (typeof window !== 'undefined') {
-    enableIndexedDbPersistence(db).catch((err) => {
-      if (err.code === 'failed-precondition') {
-        console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.')
-      } else if (err.code === 'unimplemented') {
-        console.warn('The current browser doesn\'t support persistence.')
-      }
-    })
+  try {
+    if (!firebaseConfig.apiKey) {
+      throw new Error('Firebase configuration is missing')
+    }
 
-    // Initialize Analytics only in browser
-    isSupported().then(supported => {
-      if (supported) {
-        analytics = getAnalytics(app)
-      }
-    })
+    app = initializeApp(firebaseConfig)
+    auth = getAuth(app)
+    db = getFirestore(app)
+    initialized = true
+    return { app, auth, db }
+  } catch (error) {
+    Logger.error('Failed to initialize Firebase', 'Firebase', error)
+    throw error
   }
-} catch (error) {
-  console.error('Error initializing Firebase:', error)
 }
-
-export { app, auth, db, analytics }

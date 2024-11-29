@@ -1,57 +1,29 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { getTutorialById } from '@/lib/firebase/services/tutorials'
 import { Tutorial } from '@/types/tutorial'
-import { InteractiveTutorial } from '@/components/tutorials/InteractiveTutorial'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { getTutorialById } from '@/lib/firebase/services/tutorials'
+import { TutorialViewer } from '@/components/tutorials/TutorialViewer'
+import { ErrorBoundary } from 'react-error-boundary'
+import { ErrorFallback } from '@/components/error/ErrorFallback'
 import { tutorialsList } from '@/lib/tutorials'
 
 interface TutorialPageProps {
   params: { id: string }
 }
 
-export default function TutorialPage({ params }: TutorialPageProps) {
-  const router = useRouter()
-  const [tutorial, setTutorial] = useState<Tutorial | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export async function generateStaticParams() {
+  return tutorialsList.map((tutorial) => ({
+    id: tutorial.id,
+  }))
+}
 
-  useEffect(() => {
-    async function fetchTutorial() {
-      try {
-        const fetchedTutorial = await getTutorialById(params.id as string)
-        if (fetchedTutorial) {
-          setTutorial(fetchedTutorial)
-        } else {
-          setError('Tutorial not found')
-        }
-      } catch (err) {
-        setError('Failed to load tutorial')
-        console.error('Error fetching tutorial:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
+export default async function TutorialPage({ params }: TutorialPageProps) {
+  const tutorial = await getTutorialById(params.id)
 
-    fetchTutorial()
-  }, [params.id])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    )
-  }
-
-  if (error || !tutorial) {
+  if (!tutorial) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            {error || 'Tutorial not found'}
+            Tutorial not found
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
             Please try again later or choose a different tutorial.
@@ -62,15 +34,10 @@ export default function TutorialPage({ params }: TutorialPageProps) {
   }
 
   return (
-    <InteractiveTutorial 
-      tutorial={tutorial} 
-      onComplete={() => router.push('/tutorials')}
-    />
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onReset={() => window.location.reload()}>
+      <TutorialViewer tutorial={tutorial} />
+    </ErrorBoundary>
   )
-}
-
-export async function generateStaticParams() {
-  return tutorialsList.map((tutorial) => ({
-    id: tutorial.id,
-  }))
 }
