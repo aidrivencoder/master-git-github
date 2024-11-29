@@ -11,13 +11,20 @@ interface MarkdownContentProps {
   content: string
 }
 
+type CodeComponentProps = {
+  node?: any;
+  inline?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+}
+
 export function MarkdownContent({ content }: MarkdownContentProps) {
   return (
     <div className="prose prose-lg dark:prose-invert max-w-none">
       <MarkdownPreview
         source={content}
         components={{
-          code: ({ inline, children, className }) => {
+          code: ({ inline, children = '', className }: CodeComponentProps) => {
             if (inline) {
               return <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">{children}</code>
             }

@@ -5,6 +5,7 @@ import { TutorialPage as ClientTutorialPage } from '@/components/tutorials/Tutor
 import { getTutorialById } from '@/lib/firebase/services/tutorials'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import Link from 'next/link'
+import { Tutorial } from '@/types/tutorial'
 
 interface TutorialPageProps {
   params: { id: string }
@@ -72,9 +73,9 @@ function NotFoundState() {
 }
 
 export default function TutorialPage({ params }: TutorialPageProps) {
-  const [tutorial, setTutorial] = useState(null)
+  const [tutorial, setTutorial] = useState<Tutorial | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchTutorial = async () => {
     setLoading(true)
