@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { CodeBlock } from './CodeBlock'
 
 interface GitCommandSimulatorProps {
   expectedCommand: string
