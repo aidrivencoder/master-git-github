@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { User as FirebaseUser } from 'firebase/auth'
+import { User as FirebaseUser, Auth } from 'firebase/auth'
 import { auth } from '@/lib/firebase/config'
 import { User } from '@/types/user'
 
@@ -16,8 +16,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const authInstance: Auth = auth
+
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser: FirebaseUser | null) => {
+    const unsubscribe = authInstance.onAuthStateChanged(async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
         const userData: User = {
           id: firebaseUser.uid,
@@ -41,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     return () => unsubscribe()
-  }, [])
+  }, [authInstance])
 
   return (
     <AuthContext.Provider value={{ user, loading }}>

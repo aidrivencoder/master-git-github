@@ -1,13 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { collection, getDocs } from 'firebase/firestore'
-import { db } from '@/lib/firebase/config'
+import { useAuth } from '@/components/providers/AuthProvider'
 import { Tutorial } from '@/types/tutorial'
 import { TutorialCard } from '@/components/tutorials/TutorialCard'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { getTutorials, getPublicTutorials } from '@/lib/firebase/services/tutorials'
+import { initializeTutorials } from '@/lib/firebase/services/initializeTutorials'
 
 export default function TutorialsPage() {
+  const { user } = useAuth()
   const [tutorials, setTutorials] = useState<Tutorial[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -15,14 +17,11 @@ export default function TutorialsPage() {
   useEffect(() => {
     async function fetchTutorials() {
       try {
-        const tutorialsCollection = collection(db, 'tutorials')
-        const snapshot = await getDocs(tutorialsCollection)
-        const tutorialsList = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Tutorial[]
+        // Initialize tutorials if they don't exist
+        await initializeTutorials()
         
-        setTutorials(tutorialsList)
+        const fetchedTutorials = user ? await getTutorials() : await getPublicTutorials()
+        setTutorials(fetchedTutorials)
       } catch (err) {
         setError('Failed to load tutorials')
         console.error('Error fetching tutorials:', err)
@@ -32,7 +31,7 @@ export default function TutorialsPage() {
     }
 
     fetchTutorials()
-  }, [])
+  }, [user])
 
   if (loading) {
     return (
