@@ -17,8 +17,7 @@ const tutorials = [
       {
         id: 'init',
         title: 'Initializing a Git Repository',
-        content: `
-# Creating Your First Git Repository
+        content: `# Creating Your First Git Repository
 
 Git is a distributed version control system that helps you track changes in your code. Let's start with the basics.
 
@@ -30,8 +29,7 @@ To start tracking your project with Git, you need to initialize a repository:
 git init
 \`\`\`
 
-This command creates a new Git repository in your current directory.
-        `,
+This command creates a new Git repository in your current directory.`,
         type: 'interactive',
         gitVisualization: {
           type: 'commit',
@@ -49,8 +47,7 @@ This command creates a new Git repository in your current directory.
       {
         id: 'staging',
         title: 'Staging Changes',
-        content: `
-# Understanding the Staging Area
+        content: `# Understanding the Staging Area
 
 Git uses a staging area (also called the index) to track which changes will be included in the next commit.
 
@@ -61,8 +58,7 @@ To stage files:
 \`\`\`bash
 git add <filename>    # Stage a specific file
 git add .            # Stage all changes
-\`\`\`
-        `,
+\`\`\``,
         type: 'interactive',
         gitVisualization: {
           type: 'commit',
@@ -108,60 +104,6 @@ git add .            # Stage all changes
     ],
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
-  },
-  {
-    id: 'branching-basics',
-    title: 'Git Branching',
-    description: 'Learn how to work with branches in Git',
-    difficulty: 'intermediate',
-    estimatedTime: 45,
-    isPremium: false,
-    steps: [
-      {
-        id: 'create-branch',
-        title: 'Creating a Branch',
-        content: `
-# Working with Git Branches
-
-Branches allow you to develop features, fix bugs, or experiment with new ideas in isolation.
-
-## Create a New Branch
-
-To create and switch to a new branch:
-
-\`\`\`bash
-git checkout -b feature/new-feature
-\`\`\`
-        `,
-        type: 'interactive',
-        gitVisualization: {
-          type: 'branch',
-          nodes: [
-            {
-              id: 'main',
-              type: 'branch',
-              label: 'main',
-              position: { x: 100, y: 100 }
-            },
-            {
-              id: 'feature',
-              type: 'branch',
-              label: 'feature',
-              position: { x: 250, y: 50 }
-            }
-          ],
-          edges: [
-            {
-              source: 'main',
-              target: 'feature',
-              type: 'branch'
-            }
-          ]
-        }
-      }
-    ],
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
   }
 ]
 
@@ -170,7 +112,15 @@ export async function initializeTutorials() {
     const tutorialsRef = collection(db, TUTORIALS_COLLECTION)
     
     for (const tutorial of tutorials) {
-      await setDoc(doc(tutorialsRef, tutorial.id), tutorial)
+      // Process the tutorial content to ensure proper string handling
+      const processedTutorial = {
+        ...tutorial,
+        steps: tutorial.steps.map(step => ({
+          ...step,
+          content: step.content.trim()
+        }))
+      }
+      await setDoc(doc(tutorialsRef, tutorial.id), processedTutorial)
     }
     
     Logger.info('Tutorials initialized successfully', 'TutorialService')

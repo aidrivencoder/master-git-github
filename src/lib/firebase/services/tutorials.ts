@@ -16,7 +16,17 @@ export async function getTutorials(): Promise<Tutorial[]> {
   try {
     const tutorialsRef = collection(db, TUTORIALS_COLLECTION)
     const snapshot = await getDocs(tutorialsRef)
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tutorial))
+    return snapshot.docs.map(doc => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        steps: data.steps.map((step: any) => ({
+          ...step,
+          content: step.content?.toString() || ''
+        }))
+      } as Tutorial
+    })
   } catch (error) {
     Logger.error('Failed to fetch tutorials', 'TutorialService', error)
     return []
@@ -28,7 +38,17 @@ export async function getPublicTutorials(): Promise<Tutorial[]> {
     const tutorialsRef = collection(db, TUTORIALS_COLLECTION)
     const q = query(tutorialsRef, where('isPremium', '==', false))
     const snapshot = await getDocs(q)
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tutorial))
+    return snapshot.docs.map(doc => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        steps: data.steps.map((step: any) => ({
+          ...step,
+          content: step.content?.toString() || ''
+        }))
+      } as Tutorial
+    })
   } catch (error) {
     Logger.error('Failed to fetch public tutorials', 'TutorialService', error)
     return []
@@ -44,7 +64,15 @@ export async function getTutorialById(id: string): Promise<Tutorial | null> {
       return null
     }
     
-    return { id: tutorialDoc.id, ...tutorialDoc.data() } as Tutorial
+    const data = tutorialDoc.data()
+    return {
+      id: tutorialDoc.id,
+      ...data,
+      steps: data.steps.map((step: any) => ({
+        ...step,
+        content: step.content?.toString() || ''
+      }))
+    } as Tutorial
   } catch (error) {
     Logger.error('Failed to fetch tutorial', 'TutorialService', error)
     return null

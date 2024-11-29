@@ -12,11 +12,34 @@ interface TutorialPageProps {
 }
 
 function LoadingState() {
+  const [loadingText, setLoadingText] = useState('Initializing Firebase...')
+  
+  useEffect(() => {
+    const loadingStates = [
+      { text: 'Initializing Firebase...', delay: 0 },
+      { text: 'Connecting to database...', delay: 1000 },
+      { text: 'Fetching tutorial content...', delay: 2000 },
+      { text: 'Preparing content for display...', delay: 3000 }
+    ]
+
+    loadingStates.forEach(({ text, delay }) => {
+      const timer = setTimeout(() => {
+        setLoadingText(text)
+      }, delay)
+      return () => clearTimeout(timer)
+    })
+  }, [])
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
       <div className="text-center space-y-4">
         <LoadingSpinner size="lg" />
-        <p className="text-gray-600 dark:text-gray-400">Loading tutorial content...</p>
+        <div className="space-y-2">
+          <p className="text-gray-600 dark:text-gray-400">{loadingText}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">
+            This may take a few moments...
+          </p>
+        </div>
       </div>
     </div>
   )
@@ -89,12 +112,12 @@ export default function TutorialPage({ params }: TutorialPageProps) {
     try {
       setLoading(true)
       setError(null)
-      console.log('Fetching tutorial:', params.id) // Debug log
+      console.log('Fetching tutorial:', params.id)
       const fetchedTutorial = await getTutorialById(params.id)
-      console.log('Fetched tutorial:', fetchedTutorial) // Debug log
+      console.log('Fetched tutorial:', fetchedTutorial)
       
       if (!fetchedTutorial) {
-        console.log('Tutorial not found') // Debug log
+        console.log('Tutorial not found')
         setError('Tutorial not found')
         return
       }
