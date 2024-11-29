@@ -5,7 +5,7 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({ currentStep, totalSteps, onStepClick }: ProgressBarProps) {
-  const progress = (currentStep / (totalSteps - 1)) * 100
+  const progress = Math.min((currentStep / (totalSteps - 1)) * 100, 100)
 
   return (
     <div className="relative pt-1">
@@ -21,10 +21,10 @@ export function ProgressBar({ currentStep, totalSteps, onStepClick }: ProgressBa
           </span>
         </div>
       </div>
-      <div className="flex h-2 mb-4 overflow-hidden bg-primary-200 rounded dark:bg-primary-900">
+      <div className="flex h-2 mb-4 overflow-hidden bg-primary-200 rounded dark:bg-primary-900 transition-all duration-300">
         <div
           style={{ width: `${progress}%` }}
-          className="flex flex-col justify-center overflow-hidden bg-primary-500 dark:bg-primary-600 transition-all duration-500"
+          className="flex flex-col justify-center overflow-hidden bg-primary-500 dark:bg-primary-600 transition-all duration-300"
         />
       </div>
       <div className="flex justify-between">
@@ -32,7 +32,7 @@ export function ProgressBar({ currentStep, totalSteps, onStepClick }: ProgressBa
           <button
             key={index}
             onClick={() => onStepClick?.(index)}
-            className={`w-4 h-4 rounded-full transition-all duration-200 ${
+            className={`w-4 h-4 rounded-full transition-all duration-300 ${
               index <= currentStep
                 ? 'bg-primary-500 dark:bg-primary-600'
                 : 'bg-primary-200 dark:bg-primary-900'

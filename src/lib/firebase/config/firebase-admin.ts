@@ -1,26 +1,39 @@
-import { initializeApp, getApps, cert, type ServiceAccount } from 'firebase-admin/app'
+import { initializeApp, getApps, cert, getApp, type ServiceAccount } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
 import { Logger } from '@/lib/utils/logger'
+import { validateEnvironmentVariables } from './validate-env'
 
-const apps = getApps()
-
-if (!apps.length) {
-  try {
-    const serviceAccount: ServiceAccount = {
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-    }
-
-    initializeApp({
-      credential: cert(serviceAccount)
-    })
-
-    Logger.info('Firebase Admin initialized successfully', 'FirebaseAdmin')
-  } catch (error) {
-    Logger.error('Failed to initialize Firebase Admin', 'FirebaseAdmin', error)
-    throw error
+function initializeFirebaseAdmin() {
+  if (getApps().length > 0) {
+    return getFirestore(getApp())
   }
+
+  const { isValid, error } = validateEnvironmentVariables()
+  if (!isValid) {
+    throw new Error(error)
+  }
+
+  const serviceAccount: ServiceAccount = {
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n')
+  }
+
+  const app = initializeApp({
+    credential: cert(serviceAccount)
+  })
+
+  Logger.info('Firebase Admin initialized successfully', 'FirebaseAdmin')
+  return getFirestore(app)
 }
 
-export const adminDb = getFirestore()
+let adminDb: ReturnType<typeof getFirestore>
+
+try {
+  adminDb = initializeFirebaseAdmin()
+} catch (error) {
+  Logger.error('Failed to initialize Firebase Admin', 'FirebaseAdmin', error)
+  throw error
+}
+
+export { adminDb }
