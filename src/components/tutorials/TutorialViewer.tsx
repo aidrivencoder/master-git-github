@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Tutorial } from '@/types/tutorial'
+import { Tutorial, GitVisualization } from '../../types/tutorial'
 import { GitVisualizerV2 } from './GitVisualizerV2'
 import { GitCommandSimulator } from './GitCommandSimulator'
+import { GitCommandButtons } from './GitCommandButtons'
 import { MarkdownContent } from './MarkdownContent'
 import { ProgressBar } from './ProgressBar'
 import { Quiz } from './Quiz'
@@ -17,8 +18,19 @@ export function TutorialViewer({ tutorial }: TutorialViewerProps) {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
+  const [currentVisualization, setCurrentVisualization] = useState<GitVisualization | null>(null)
 
   const step = tutorial.steps[currentStep]
+  const isVisualTutorial = tutorial.id === 'git-visual'
+
+  // Initialize visualization when step changes
+  useEffect(() => {
+    if (step.gitVisualization) {
+      setCurrentVisualization(step.gitVisualization)
+    } else {
+      setCurrentVisualization(null)
+    }
+  }, [step])
 
   const handleStepComplete = () => {
     if (!completedSteps.includes(step.id)) {
@@ -30,6 +42,10 @@ export function TutorialViewer({ tutorial }: TutorialViewerProps) {
     } else {
       router.push('/tutorials')
     }
+  }
+
+  const handleVisualizationUpdate = (newVisualization: GitVisualization) => {
+    setCurrentVisualization(newVisualization)
   }
 
   return (
@@ -57,19 +73,27 @@ export function TutorialViewer({ tutorial }: TutorialViewerProps) {
               <MarkdownContent content={step.content} />
             </div>
             
-            {step.gitVisualization && (
+            {currentVisualization && (
               <div className="my-10 p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <GitVisualizerV2
-                  visualization={step.gitVisualization}
-                  interactive
+                  visualization={currentVisualization}
+                  interactive={isVisualTutorial}
                   onNodeClick={(nodeId) => {
                     console.log('Node clicked:', nodeId)
                   }}
                 />
+                {isVisualTutorial && step.type === 'interactive' && (
+                  <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <GitCommandButtons
+                      visualization={currentVisualization}
+                      onVisualizationUpdate={handleVisualizationUpdate}
+                    />
+                  </div>
+                )}
               </div>
             )}
             
-            {step.type === 'interactive' && (
+            {step.type === 'interactive' && !isVisualTutorial && (
               <div className="my-8">
                 <GitCommandSimulator
                   expectedCommand="git init"
