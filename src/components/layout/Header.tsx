@@ -2,17 +2,20 @@
 
 import { Fragment } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Menu, Transition } from '@headlessui/react'
 import { UserCircleIcon } from '@heroicons/react/24/outline'
-import { useAuth } from '@/components/providers/AuthProvider'
-import { ThemeToggle } from '@/components/theme/ThemeToggle'
-import { signOut } from '@/lib/firebase/auth'
+import { useAuth } from '../../components/providers/AuthProvider'
+import { ThemeToggle } from '../../components/theme/ThemeToggle'
+import { signOut } from '../../lib/firebase/auth'
 
 export function Header() {
   const { user, loading } = useAuth()
+  const router = useRouter()
 
   const handleSignOut = async () => {
     await signOut()
+    router.push('/')
   }
 
   return (
