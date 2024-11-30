@@ -1,12 +1,24 @@
 'use client'
 
+import { useState } from 'react'
 import { useAuth } from '@/components/providers/AuthProvider'
-import Link from 'next/link'
+import { createCheckoutSession } from '@/lib/stripe/checkout'
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 
-const plans = [
+interface Plan {
+  name: string
+  price: number
+  priceId: string | null
+  features: string[]
+  cta: string
+  highlighted: boolean
+}
+
+const plans: Plan[] = [
   {
     name: 'Free',
     price: 0,
+    priceId: null, // Free plan doesn't need a Stripe price ID
     features: [
       'Access to basic tutorials',
       'Community support',
@@ -19,6 +31,7 @@ const plans = [
   {
     name: 'Premium',
     price: 9.99,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID || '',
     features: [
       'All basic tutorials',
       'Advanced Git workflows',
@@ -35,6 +48,30 @@ const plans = [
 
 export default function PricingPage() {
   const { user } = useAuth()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubscribe = async (priceId: string | null) => {
+    if (!priceId) return // Free plan
+    
+    try {
+      setLoading(true)
+      setError(null)
+      await createCheckoutSession(priceId)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -46,6 +83,19 @@ export default function PricingPage() {
           Choose the plan that best fits your needs
         </p>
       </div>
+
+      {error && (
+        <div className="mt-8 rounded-md bg-red-50 p-4">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mt-12 grid gap-8 lg:grid-cols-2 lg:gap-12">
         {plans.map((plan) => (
@@ -68,15 +118,29 @@ export default function PricingPage() {
                   /month
                 </span>
               </p>
-              <Link
-                href={user ? '/dashboard' : '/signup'}
-                className={`mt-8 block w-full py-3 px-6 rounded-md text-center font-medium
-                  ${plan.highlighted ?
-                    'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600' :
-                    'bg-gray-800 text-white hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600'}`}
-              >
-                {plan.cta}
-              </Link>
+              {!user ? (
+                <a
+                  href="/signup"
+                  className={`mt-8 block w-full py-3 px-6 rounded-md text-center font-medium
+                    ${plan.highlighted ?
+                      'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600' :
+                      'bg-gray-800 text-white hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600'}`}
+                >
+                  Sign up
+                </a>
+              ) : (
+                <button
+                  onClick={() => handleSubscribe(plan.priceId)}
+                  disabled={loading}
+                  className={`mt-8 block w-full py-3 px-6 rounded-md text-center font-medium
+                    ${plan.highlighted ?
+                      'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600' :
+                      'bg-gray-800 text-white hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600'}
+                    ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {plan.cta}
+                </button>
+              )}
             </div>
             <div className="px-6 pt-6 pb-8">
               <h3 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wide">
