@@ -54,5 +54,13 @@ service cloud.firestore {
       );
       allow write: if isAdmin();
     }
+
+    // Checkout Sessions collection
+    match /checkoutSessions/{sessionId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+      allow write: if isAdmin();
+    }
   }
 }

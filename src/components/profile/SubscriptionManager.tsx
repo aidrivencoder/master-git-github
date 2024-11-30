@@ -4,13 +4,8 @@ import { useState } from 'react'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { createCheckoutSession } from '@/lib/stripe/checkout'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-
-interface PaymentHistory {
-  id: string
-  amount: number
-  status: string
-  created: number
-}
+import { auth } from '@/lib/firebase/config'
+import { PaymentHistory } from '@/types/user'
 
 export function SubscriptionManager() {
   const { user } = useAuth()
@@ -22,11 +17,16 @@ export function SubscriptionManager() {
       setLoading(true)
       setError(null)
       
+      const idToken = await auth.currentUser?.getIdToken()
+      if (!idToken) {
+        throw new Error('Not authenticated')
+      }
+      
       const response = await fetch('/api/cancel-subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await user?.getIdToken()}`,
+          'Authorization': `Bearer ${idToken}`,
         },
       })
 
@@ -46,11 +46,16 @@ export function SubscriptionManager() {
       setLoading(true)
       setError(null)
       
+      const idToken = await auth.currentUser?.getIdToken()
+      if (!idToken) {
+        throw new Error('Not authenticated')
+      }
+      
       const response = await fetch('/api/create-portal-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await user?.getIdToken()}`,
+          'Authorization': `Bearer ${idToken}`,
         },
       })
 
@@ -99,8 +104,13 @@ export function SubscriptionManager() {
           
           <div className="mt-3 max-w-xl text-sm text-gray-500 dark:text-gray-400">
             <p>
-              Current plan: {user?.subscription?.tier || 'No active subscription'}
+              Current plan: {user?.subscription?.tier || 'free'}
             </p>
+            {user?.subscription?.validUntil && (
+              <p className="mt-1">
+                Valid until: {new Date(user.subscription.validUntil).toLocaleDateString()}
+              </p>
+            )}
           </div>
 
           <div className="mt-3">
@@ -112,7 +122,7 @@ export function SubscriptionManager() {
           </div>
 
           <div className="mt-5 space-x-4">
-            {user?.subscription?.status === 'active' ? (
+            {user?.subscription?.tier === 'premium' && user?.subscription?.status === 'active' ? (
               <>
                 <button
                   type="button"
@@ -150,7 +160,7 @@ export function SubscriptionManager() {
         </div>
       </div>
 
-      {user?.subscription?.status === 'active' && (
+      {user?.subscription?.tier === 'premium' && user?.paymentHistory && user.paymentHistory.length > 0 && (
         <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
@@ -176,7 +186,7 @@ export function SubscriptionManager() {
                           </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                          {user?.paymentHistory?.map((payment: PaymentHistory) => (
+                          {user.paymentHistory.map((payment: PaymentHistory) => (
                             <tr key={payment.id}>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                 {new Date(payment.created * 1000).toLocaleDateString()}
