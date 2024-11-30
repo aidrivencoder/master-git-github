@@ -2,11 +2,13 @@ import { Tutorial } from '../../types/tutorial'
 import { gitBasicsTutorial } from './git-basics'
 import { gitBranchingTutorial } from './git-branching'
 import { gitRemoteTutorial } from './git-remote'
+import { gitAdvancedTutorial } from './git-advanced'
 
 export const tutorials: Tutorial[] = [
   gitBasicsTutorial,
   gitBranchingTutorial,
   gitRemoteTutorial,
+  gitAdvancedTutorial,
 ]
 
 export const getTutorialById = (id: string): Tutorial | undefined => {

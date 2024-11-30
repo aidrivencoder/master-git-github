@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { GitVisualization, GitNode, GitEdge } from '@/types/tutorial'
-import { useTheme } from '@/components/theme/ThemeProvider'
+import { useEffect, useRef, useState, MouseEvent as ReactMouseEvent } from 'react'
+import { GitVisualization, GitNode, GitEdge } from '../../types/tutorial'
+import { useTheme } from '../theme/ThemeProvider'
 
 interface GitVisualizerV2Props {
   visualization: GitVisualization
@@ -63,7 +63,7 @@ export function GitVisualizerV2({
 
     // Then draw nodes
     visualization.nodes.forEach(node => {
-      drawNode(ctx, node, node.id === hoveredNode)
+      drawNode(ctx, node, node.id === hoveredNode, theme === 'dark')
     })
 
     ctx.restore()
@@ -132,7 +132,7 @@ export function GitVisualizerV2({
     }
   }
 
-  const handleClick = (event: MouseEvent) => {
+  const handleCanvasClick = (event: ReactMouseEvent<HTMLCanvasElement>) => {
     if (!onNodeClick || isDragging) return
 
     const canvas = canvasRef.current
@@ -160,6 +160,7 @@ export function GitVisualizerV2({
           theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
         }`}
         style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        onClick={handleCanvasClick}
       />
       <div className="absolute bottom-4 right-4 flex gap-2">
         <button
@@ -199,7 +200,8 @@ export function GitVisualizerV2({
 function drawNode(
   ctx: CanvasRenderingContext2D,
   node: GitNode,
-  isHovered: boolean
+  isHovered: boolean,
+  isDarkTheme: boolean
 ) {
   const { x, y } = node.position
   const radius = isHovered ? 24 : 20
@@ -223,8 +225,8 @@ function drawNode(
   ctx.fillStyle = getNodeColor(node.type, isHovered)
   ctx.fill()
 
-  // Draw label
-  ctx.fillStyle = isHovered ? '#FFFFFF' : '#F8F8F8'
+  // Draw label with theme-appropriate text color
+  ctx.fillStyle = isDarkTheme ? '#FFFFFF' : '#000000'
   ctx.font = `${isHovered ? 'bold ' : ''}${isHovered ? '15px' : '14px'} system-ui, -apple-system, sans-serif`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
