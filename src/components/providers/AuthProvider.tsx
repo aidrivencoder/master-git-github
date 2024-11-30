@@ -29,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userData = userDoc.data()
           // Convert Firestore Timestamps to Dates
           const user: User = {
+            uid: firebaseUser.uid,
             ...userData,
             subscription: {
               ...userData.subscription,
@@ -41,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           // Fallback to basic user data if Firestore document doesn't exist
           const userData: User = {
-            id: firebaseUser.uid,
+            uid: firebaseUser.uid,
             email: firebaseUser.email || '',
             displayName: firebaseUser.displayName || '',
             photoURL: firebaseUser.photoURL || undefined,

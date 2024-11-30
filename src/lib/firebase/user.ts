@@ -1,8 +1,8 @@
 import { updateProfile } from 'firebase/auth'
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc, collection } from 'firebase/firestore'
 import { auth, db } from './config'
 import { Logger } from '../utils/logger'
-import { User } from '@/types/user'
+import { User } from '../../types/user'
 
 async function createStripeCustomer(email: string) {
   try {
@@ -29,15 +29,51 @@ async function createStripeCustomer(email: string) {
 
 export async function checkPremiumAccess(userId: string): Promise<boolean> {
   try {
+    // First check the user document
     const userRef = doc(db, 'users', userId);
     const userDoc = await getDoc(userRef);
-
+    
     if (!userDoc.exists()) {
+      Logger.info(`User document not found for ID: ${userId}`, 'PremiumAccess');
       return false;
     }
 
-    const userData = userDoc.data() as User;
-    return userData.subscription.tier === 'premium';
+    // Then check the subscriptions collection
+    const subscriptionRef = doc(db, 'subscriptions', userId);
+    const subscriptionDoc = await getDoc(subscriptionRef);
+
+    if (!subscriptionDoc.exists()) {
+      Logger.info(`Subscription document not found for user ID: ${userId}`, 'PremiumAccess');
+      return false;
+    }
+
+    const subscriptionData = subscriptionDoc.data();
+    console.log('subscriptionData', subscriptionData)
+    const now = new Date();
+    
+    // Log subscription data for debugging
+    const subscriptionInfo = JSON.stringify({
+      status: subscriptionData.status,
+      planName: subscriptionData.plan?.name,
+      currentPeriodEnd: subscriptionData.currentPeriod?.end?.toDate(),
+      cancelAtPeriodEnd: subscriptionData.cancelAtPeriodEnd
+    });
+    Logger.info(`Checking subscription data: ${subscriptionInfo}`, 'PremiumAccess');
+
+    // Check if:
+    // 1. Subscription is active
+    // 2. Plan includes 'premium'
+    // 3. Current period hasn't ended
+    // 4. Not scheduled for cancellation at period end OR if it is, we're still within the current period
+    const hasAccess = (
+      subscriptionData.status === 'active' &&
+      subscriptionData.plan?.name.toLowerCase().includes('premium') &&
+      now <= subscriptionData.currentPeriod?.end?.toDate() &&
+      (!subscriptionData.cancelAtPeriodEnd || now <= subscriptionData.currentPeriod?.end?.toDate())
+    );
+
+    Logger.info(`Premium access result: ${hasAccess}`, 'PremiumAccess');
+    return hasAccess;
   } catch (error) {
     Logger.error('Failed to check premium access', 'PremiumAccess', error);
     return false;
@@ -59,7 +95,7 @@ export async function createUserDocument(uid: string, email: string) {
 
       // Create new user document with Stripe customer ID
       const userData: User = {
-        id: uid,
+        uid: uid,
         email,
         displayName: email.split('@')[0], // Default display name
         subscription: {
@@ -105,7 +141,7 @@ export async function updateUserDisplayName(displayName: string) {
     if (!userDoc.exists()) {
       // Create new user document
       const userData: User = {
-        id: user.uid,
+        uid: user.uid,
         email: user.email || '',
         displayName,
         subscription: {
