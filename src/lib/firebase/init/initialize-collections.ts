@@ -1,6 +1,7 @@
-import { adminDb } from '../config/firebase-admin'
+import { adminDb, adminAuth } from '../config/firebase-admin'
 import { Logger } from '@/lib/utils/logger'
 import { sampleUser, sampleTutorial, sampleProgress, sampleSubscription } from './sampleData'
+import { adminUser } from './adminData'
 import { Timestamp, WriteResult } from 'firebase-admin/firestore'
 
 export async function initializeCollections() {
@@ -11,7 +12,28 @@ export async function initializeCollections() {
   const batch = adminDb.batch()
 
   try {
-    // Users Collection
+    // Create admin user in Authentication
+    try {
+      await adminAuth.createUser({
+        uid: adminUser.id,
+        email: adminUser.email,
+        password: 'admin123', // Default password
+        displayName: adminUser.displayName,
+      });
+      Logger.info('Admin user created in Authentication', 'DatabaseInitialization');
+    } catch (error: any) {
+      // If user already exists, just log it
+      if (error.code !== 'auth/email-already-exists') {
+        throw error;
+      }
+      Logger.info('Admin user already exists in Authentication', 'DatabaseInitialization');
+    }
+
+    // Admin User in Firestore
+    const adminRef = adminDb.collection('users').doc(adminUser.id)
+    batch.set(adminRef, adminUser)
+
+    // Sample Users Collection
     const userRef = adminDb.collection('users').doc(sampleUser.id)
     batch.set(userRef, sampleUser)
 
