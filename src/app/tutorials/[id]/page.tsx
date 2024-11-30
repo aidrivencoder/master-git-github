@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { TutorialPage as ClientTutorialPage } from '@/components/tutorials/TutorialPage'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { PremiumContent } from '@/components/premium/PremiumContent'
 import Link from 'next/link'
 import { Tutorial } from '@/types/tutorial'
 import { getTutorialById } from '@/tutorials/data'
@@ -68,7 +69,13 @@ export default function TutorialPage({ params }: TutorialPageProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ClientTutorialPage tutorial={tutorial} />
+        {tutorial.isPremium ? (
+          <PremiumContent>
+            <ClientTutorialPage tutorial={tutorial} />
+          </PremiumContent>
+        ) : (
+          <ClientTutorialPage tutorial={tutorial} />
+        )}
       </div>
     </div>
   )
