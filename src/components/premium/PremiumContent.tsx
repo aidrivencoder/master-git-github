@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '../providers/AuthProvider'
-import { checkPremiumAccess } from '@/lib/firebase/user'
+import { checkPremiumAccess } from '../../lib/firebase/user'
 import Link from 'next/link'
 
 interface PremiumContentProps {
@@ -14,13 +14,37 @@ export function PremiumContent({ children }: PremiumContentProps) {
   const [hasPremiumAccess, setHasPremiumAccess] = useState<boolean | null>(null)
 
   useEffect(() => {
+    let mounted = true;
+
     async function checkAccess() {
       if (user) {
-        const hasAccess = await checkPremiumAccess(user.id)
-        setHasPremiumAccess(hasAccess)
+        try {
+          const hasAccess = await checkPremiumAccess(user.uid)
+          if (mounted) {
+            setHasPremiumAccess(hasAccess)
+          }
+        } catch (error) {
+          console.error('Error checking premium access:', error)
+          if (mounted) {
+            setHasPremiumAccess(false)
+          }
+        }
+      } else {
+        if (mounted) {
+          setHasPremiumAccess(false)
+        }
       }
     }
+
     checkAccess()
+
+    // Set up an interval to periodically check access
+    const intervalId = setInterval(checkAccess, 5000)
+
+    return () => {
+      mounted = false
+      clearInterval(intervalId)
+    }
   }, [user])
 
   if (hasPremiumAccess === null) {
