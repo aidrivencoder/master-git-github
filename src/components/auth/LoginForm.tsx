@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signInWithEmail } from '@/lib/firebase/auth'
+import { checkUserRole } from '@/lib/firebase/user'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 
 export function LoginForm() {
@@ -28,7 +29,16 @@ export function LoginForm() {
     }
 
     if (user) {
-      router.push(redirect)
+      // Check user role
+      const role = await checkUserRole(user.uid)
+      
+      if (role === 'admin') {
+        // Redirect admin users to admin dashboard
+        router.push('/admin')
+      } else {
+        // Redirect regular users to the specified redirect path
+        router.push(redirect)
+      }
     }
   }
 

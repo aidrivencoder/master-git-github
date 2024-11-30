@@ -2,11 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase/config';
-import { collection, getDocs, query, where, orderBy, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, QueryDocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { Subscription } from '@/lib/firebase/schema/subscriptions';
 
+// Extend the Subscription type to include Firestore document id
+interface SubscriptionWithId extends Subscription {
+  id: string;
+}
+
 export default function SubscriptionsManagement() {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [subscriptions, setSubscriptions] = useState<SubscriptionWithId[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'active' | 'canceled' | 'past_due'>('all');
 
@@ -23,7 +28,7 @@ export default function SubscriptionsManagement() {
           return {
             id: doc.id,
             ...data
-          } as unknown as Subscription;
+          } as SubscriptionWithId;
         });
         setSubscriptions(fetchedSubscriptions);
       } catch (error) {
@@ -52,6 +57,26 @@ export default function SubscriptionsManagement() {
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return 'N/A';
+    if (timestamp instanceof Timestamp) {
+      return new Date(timestamp.toMillis()).toLocaleDateString();
+    }
+    // Handle if the timestamp is already a number
+    if (typeof timestamp === 'number') {
+      return new Date(timestamp).toLocaleDateString();
+    }
+    // Handle if the timestamp is a Date object
+    if (timestamp instanceof Date) {
+      return timestamp.toLocaleDateString();
+    }
+    // Handle if the timestamp has seconds and nanoseconds
+    if (timestamp.seconds) {
+      return new Date(timestamp.seconds * 1000).toLocaleDateString();
+    }
+    return 'Invalid Date';
   };
 
   if (loading) {
@@ -107,17 +132,17 @@ export default function SubscriptionsManagement() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredSubscriptions.map((subscription) => (
-                <tr key={subscription.stripeCustomerId} className="hover:bg-gray-50">
+                <tr key={subscription.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{subscription.stripeCustomerId}</div>
                     <div className="text-sm text-gray-500">{subscription.userId}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
-                      {subscription.plan.name}
+                      {subscription.plan?.name || 'N/A'}
                     </div>
                     <div className="text-sm text-gray-500">
-                      ${subscription.plan.price}/{subscription.plan.interval}
+                      ${subscription.plan?.price || 0}/{subscription.plan?.interval || 'month'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -132,18 +157,18 @@ export default function SubscriptionsManagement() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div>
-                      Start: {new Date(subscription.currentPeriod.start.toMillis()).toLocaleDateString()}
+                      Start: {formatDate(subscription.currentPeriod?.start)}
                     </div>
                     <div>
-                      End: {new Date(subscription.currentPeriod.end.toMillis()).toLocaleDateString()}
+                      End: {formatDate(subscription.currentPeriod?.end)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div>
-                      Tutorials: {subscription.usage.premiumTutorialsAccessed}
+                      Tutorials: {subscription.usage?.premiumTutorialsAccessed || 0}
                     </div>
                     <div>
-                      Time: {Math.round(subscription.usage.totalTimeSpent / 60)}h
+                      Time: {Math.round((subscription.usage?.totalTimeSpent || 0) / 60)}h
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

@@ -98,6 +98,7 @@ export async function createUserDocument(uid: string, email: string) {
         uid: uid,
         email,
         displayName: email.split('@')[0], // Default display name
+        role: 'user', // Default role
         subscription: {
           tier: 'free',
           stripeCustomerId: customerId
@@ -144,6 +145,7 @@ export async function updateUserDisplayName(displayName: string) {
         uid: user.uid,
         email: user.email || '',
         displayName,
+        role: 'user', // Default role
         subscription: {
           tier: 'free'
         },
@@ -168,5 +170,23 @@ export async function updateUserDisplayName(displayName: string) {
   } catch (error) {
     Logger.error('Failed to update display name', 'UserUpdate', error)
     return { success: false, error }
+  }
+}
+
+// New function to check if user is admin
+export async function checkUserRole(uid: string): Promise<string | null> {
+  try {
+    const userRef = doc(db, 'users', uid);
+    const userDoc = await getDoc(userRef);
+    
+    if (!userDoc.exists()) {
+      return null;
+    }
+
+    const userData = userDoc.data() as User;
+    return userData.role || 'user';
+  } catch (error) {
+    Logger.error('Failed to check user role', 'UserRole', error);
+    return null;
   }
 }

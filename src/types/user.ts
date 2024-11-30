@@ -5,6 +5,7 @@ export interface User {
   email: string
   displayName: string
   photoURL?: string
+  role?: 'user' | 'admin'  // Added role field
   subscription: {
     tier: 'free' | 'premium'
     status?: 'active' | 'past_due' | 'canceled' | 'none'
