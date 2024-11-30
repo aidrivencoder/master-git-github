@@ -12,7 +12,7 @@ export function useTutorialProgress(tutorialId: string) {
   useEffect(() => {
     if (!user) return
 
-    const progressRef = doc(db, 'progress', `${user.id}_${tutorialId}`)
+    const progressRef = doc(db, 'progress', `${user.uid}_${tutorialId}`)
     
     const unsubscribe = onSnapshot(progressRef, (doc) => {
       if (doc.exists()) {
@@ -30,7 +30,7 @@ export function useTutorialProgress(tutorialId: string) {
 
     setLoading(true)
     try {
-      const progressRef = doc(db, 'progress', `${user.id}_${tutorialId}`)
+      const progressRef = doc(db, 'progress', `${user.uid}_${tutorialId}`)
       await updateDoc(progressRef, {
         currentStep: step,
         lastAccessed: serverTimestamp()
@@ -47,7 +47,7 @@ export function useTutorialProgress(tutorialId: string) {
 
     setLoading(true)
     try {
-      const progressRef = doc(db, 'progress', `${user.id}_${tutorialId}`)
+      const progressRef = doc(db, 'progress', `${user.uid}_${tutorialId}`)
       await updateDoc(progressRef, {
         completedSteps: arrayUnion(stepId),
         lastAccessed: serverTimestamp()

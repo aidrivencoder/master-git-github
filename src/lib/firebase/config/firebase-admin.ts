@@ -1,12 +1,18 @@
 import { initializeApp, getApps, cert, getApp, type ServiceAccount } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
+import { getAuth } from 'firebase-admin/auth'
 import { Logger } from '@/lib/utils/logger'
 import { validateEnvironmentVariables } from './validate-env'
 
 function initializeFirebaseAdmin() {
   try {
+    // If already initialized, return existing instances
     if (getApps().length > 0) {
-      return getFirestore(getApp())
+      const app = getApp()
+      return {
+        db: getFirestore(app),
+        auth: getAuth(app)
+      }
     }
 
     const { isValid, error } = validateEnvironmentVariables()
@@ -33,13 +39,16 @@ function initializeFirebaseAdmin() {
     })
 
     Logger.info('Firebase Admin initialized successfully', 'FirebaseAdmin')
-    return getFirestore(app)
+    return {
+      db: getFirestore(app),
+      auth: getAuth(app)
+    }
   } catch (error) {
     Logger.error('Failed to initialize Firebase Admin', 'FirebaseAdmin', error)
     throw error
   }
 }
 
-const adminDb = initializeFirebaseAdmin()
+const { db: adminDb, auth: adminAuth } = initializeFirebaseAdmin()
 
-export { adminDb }
+export { adminDb, adminAuth }

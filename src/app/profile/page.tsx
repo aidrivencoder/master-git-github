@@ -4,6 +4,7 @@ import { useCallback } from 'react'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { DisplayNameForm } from '@/components/profile/DisplayNameForm'
+import { SubscriptionManager } from '@/components/profile/SubscriptionManager'
 
 export default function ProfilePage() {
   const { user } = useAuth()
@@ -21,7 +22,8 @@ export default function ProfilePage() {
             Profile
           </h1>
           
-          <div className="mt-6">
+          <div className="mt-6 space-y-8">
+            {/* Profile Information */}
             <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center space-x-4">
@@ -54,29 +56,11 @@ export default function ProfilePage() {
                     onUpdate={handleUpdate}
                   />
                 </div>
-
-                <div className="mt-6 border-t border-gray-200 dark:border-gray-700">
-                  <dl className="divide-y divide-gray-200 dark:divide-gray-700">
-                    <div className="py-4">
-                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Subscription
-                      </dt>
-                      <dd className="mt-1 text-sm text-gray-900 dark:text-white">
-                        {user?.subscription?.tier ? `${user.subscription.tier.charAt(0).toUpperCase()}${user.subscription.tier.slice(1)} Plan` : 'No Plan'}
-                      </dd>
-                    </div>
-                    <div className="py-4">
-                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Completed Tutorials
-                      </dt>
-                      <dd className="mt-1 text-sm text-gray-900 dark:text-white">
-                        {user?.progress?.completedTutorials?.length || 0}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
               </div>
             </div>
+
+            {/* Subscription Management */}
+            <SubscriptionManager />
           </div>
         </div>
       </div>

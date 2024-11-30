@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { TutorialPage as ClientTutorialPage } from '@/components/tutorials/TutorialPage'
-import { getTutorialById } from '@/lib/firebase/services/tutorials'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { PremiumContent } from '@/components/premium/PremiumContent'
 import Link from 'next/link'
 import { Tutorial } from '@/types/tutorial'
+import { getTutorialById } from '@/tutorials/data'
 
 interface TutorialPageProps {
   params: { id: string }
@@ -14,33 +15,10 @@ interface TutorialPageProps {
 function LoadingState() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
-      <LoadingSpinner size="lg" />
-    </div>
-  )
-}
-
-interface ErrorStateProps {
-  message: string;
-  onRetry: () => void;
-}
-
-function ErrorState({ message, onRetry }: ErrorStateProps) {
-  return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Error Loading Tutorial
-            </h2>
-            <p className="text-red-600 dark:text-red-400">{message}</p>
-            <button 
-              onClick={onRetry}
-              className="mt-4 px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-md hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
+      <div className="text-center space-y-4">
+        <LoadingSpinner size="lg" />
+        <div className="space-y-2">
+          <p className="text-gray-600 dark:text-gray-400">Loading tutorial content...</p>
         </div>
       </div>
     </div>
@@ -49,23 +27,21 @@ function ErrorState({ message, onRetry }: ErrorStateProps) {
 
 function NotFoundState() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Tutorial Not Found
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              The tutorial you're looking for doesn't exist or has been removed.
-            </p>
-            <Link 
-              href="/tutorials"
-              className="inline-block px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-md hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
-            >
-              Back to Tutorials
-            </Link>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+      <div className="max-w-2xl w-full mx-auto px-4 py-8 space-y-6">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Tutorial Not Found
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
+            The tutorial you're looking for doesn't exist or has been removed.
+          </p>
+          <Link 
+            href="/tutorials"
+            className="inline-block px-6 py-2.5 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200 font-medium shadow-sm"
+          >
+            Back to Tutorials
+          </Link>
         </div>
       </div>
     </div>
@@ -75,32 +51,15 @@ function NotFoundState() {
 export default function TutorialPage({ params }: TutorialPageProps) {
   const [tutorial, setTutorial] = useState<Tutorial | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchTutorial = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const fetchedTutorial = await getTutorialById(params.id)
-      setTutorial(fetchedTutorial)
-    } catch (err) {
-      setError('Failed to load tutorial')
-      console.error('Error fetching tutorial:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   useEffect(() => {
-    fetchTutorial()
+    const fetchedTutorial = getTutorialById(params.id)
+    setTutorial(fetchedTutorial || null)
+    setLoading(false)
   }, [params.id])
 
   if (loading) {
     return <LoadingState />
-  }
-
-  if (error) {
-    return <ErrorState message={error} onRetry={fetchTutorial} />
   }
 
   if (!tutorial) {
@@ -108,8 +67,16 @@ export default function TutorialPage({ params }: TutorialPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <ClientTutorialPage tutorial={tutorial} />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {tutorial.isPremium ? (
+          <PremiumContent>
+            <ClientTutorialPage tutorial={tutorial} />
+          </PremiumContent>
+        ) : (
+          <ClientTutorialPage tutorial={tutorial} />
+        )}
+      </div>
     </div>
   )
 }
