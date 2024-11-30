@@ -5,16 +5,24 @@ export interface User {
   email: string
   displayName: string
   photoURL?: string
-  subscription: SubscriptionStatus
+  subscription: {
+    tier: 'free' | 'premium'
+    status?: 'active' | 'past_due' | 'canceled' | 'none'
+    stripeCustomerId?: string
+    subscriptionId?: string
+    validUntil?: Date
+  }
   progress: UserProgress
+  paymentHistory?: PaymentHistory[]
   createdAt: Date
   updatedAt: Date
 }
 
-export interface SubscriptionStatus {
-  tier: 'free' | 'premium'
-  validUntil?: Date
-  stripeCustomerId?: string
+export interface PaymentHistory {
+  id: string
+  amount: number
+  status: string
+  created: number
 }
 
 export interface UserProgress {

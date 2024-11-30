@@ -1,7 +1,8 @@
 import { updateProfile } from 'firebase/auth'
-import { doc, getDoc, setDoc, updateDoc, collection } from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'
 import { auth, db } from './config'
 import { Logger } from '../utils/logger'
+import { User } from '@/types/user'
 
 async function createStripeCustomer(email: string) {
   try {
@@ -28,15 +29,15 @@ async function createStripeCustomer(email: string) {
 
 export async function checkPremiumAccess(userId: string): Promise<boolean> {
   try {
-    const subscriptionRef = doc(collection(db, 'subscriptions'), userId);
-    const subscriptionDoc = await getDoc(subscriptionRef);
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
 
-    if (!subscriptionDoc.exists()) {
+    if (!userDoc.exists()) {
       return false;
     }
 
-    const subscription = subscriptionDoc.data();
-    return subscription.status === 'active';
+    const userData = userDoc.data() as User;
+    return userData.subscription.tier === 'premium';
   } catch (error) {
     Logger.error('Failed to check premium access', 'PremiumAccess', error);
     return false;
@@ -57,7 +58,7 @@ export async function createUserDocument(uid: string, email: string) {
       }
 
       // Create new user document with Stripe customer ID
-      const userData = {
+      const userData: User = {
         id: uid,
         email,
         displayName: email.split('@')[0], // Default display name
@@ -67,13 +68,7 @@ export async function createUserDocument(uid: string, email: string) {
         },
         progress: {
           completedTutorials: [],
-          totalTimeSpent: 0
-        },
-        preferences: {
-          emailNotifications: true,
-          theme: 'system',
-          difficulty: 'beginner',
-          language: 'en'
+          achievements: []
         },
         createdAt: new Date(),
         updatedAt: new Date()
@@ -84,7 +79,7 @@ export async function createUserDocument(uid: string, email: string) {
       return { success: true, userData };
     }
 
-    return { success: true, userData: userDoc.data() };
+    return { success: true, userData: userDoc.data() as User };
   } catch (error) {
     Logger.error('Failed to create user document', 'UserCreate', error);
     return { success: false, error };
@@ -107,27 +102,29 @@ export async function updateUserDisplayName(displayName: string) {
     // Check if user document exists
     const userDoc = await getDoc(userRef)
     
-    const userData = {
-      displayName,
-      email: user.email,
-      updatedAt: new Date(),
-      subscription: {
-        tier: 'free'
-      },
-      progress: {
-        completedTutorials: []
-      }
-    }
-
     if (!userDoc.exists()) {
       // Create new user document
-      await setDoc(userRef, {
-        ...userData,
-        createdAt: new Date()
-      })
+      const userData: User = {
+        id: user.uid,
+        email: user.email || '',
+        displayName,
+        subscription: {
+          tier: 'free'
+        },
+        progress: {
+          completedTutorials: [],
+          achievements: []
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      await setDoc(userRef, userData)
     } else {
-      // Update existing document
-      await updateDoc(userRef, userData)
+      // Update only the display name and updatedAt
+      await updateDoc(userRef, {
+        displayName,
+        updatedAt: new Date()
+      })
     }
 
     Logger.info(`Display name updated for user: ${user.uid}`, 'UserUpdate')
