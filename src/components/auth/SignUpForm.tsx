@@ -10,12 +10,14 @@ export function SignUpForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState<string>('')
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setLoading(true)
+    setStatus('Creating account...')
 
     const { user, error } = await signUpWithEmail(email, password)
     
@@ -24,6 +26,8 @@ export function SignUpForm() {
       setLoading(false)
       return
     }
+
+    setStatus('Setting up your account...')
 
     if (user) {
       router.push('/dashboard')
@@ -72,7 +76,14 @@ export function SignUpForm() {
         disabled={loading}
         className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 dark:bg-primary-500 dark:hover:bg-primary-600"
       >
-        {loading ? <LoadingSpinner size="sm" /> : 'Create Account'}
+        {loading ? (
+          <div className="flex items-center space-x-2">
+            <LoadingSpinner size="sm" />
+            <span>{status}</span>
+          </div>
+        ) : (
+          'Create Account'
+        )}
       </button>
     </form>
   )

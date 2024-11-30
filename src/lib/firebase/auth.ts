@@ -8,7 +8,8 @@ import {
   type User
 } from 'firebase/auth'
 import { auth } from './config'
-import { Logger } from '@/lib/utils/logger'
+import { Logger } from '../utils/logger'
+import { createUserDocument } from './user'
 
 export const githubAuth = new GithubAuthProvider()
 githubAuth.addScope('read:user')
@@ -35,7 +36,16 @@ export async function signInWithEmail(email: string, password: string) {
 
 export async function signUpWithEmail(email: string, password: string) {
   try {
+    // Create Firebase auth user
     const result = await createUserWithEmailAndPassword(auth, email, password)
+    
+    // Create user document with Stripe customer
+    const { success, error: userDocError } = await createUserDocument(result.user.uid, email)
+    
+    if (!success) {
+      throw userDocError
+    }
+
     Logger.info(`New user created: ${result.user.email}`, 'Auth')
     return { user: result.user, error: null }
   } catch (error) {

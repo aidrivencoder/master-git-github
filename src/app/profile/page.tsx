@@ -4,6 +4,7 @@ import { useCallback } from 'react'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { DisplayNameForm } from '@/components/profile/DisplayNameForm'
+import Link from 'next/link'
 
 export default function ProfilePage() {
   const { user } = useAuth()
@@ -61,8 +62,16 @@ export default function ProfilePage() {
                       <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                         Subscription
                       </dt>
-                      <dd className="mt-1 text-sm text-gray-900 dark:text-white">
-                        {user?.subscription?.tier ? `${user.subscription.tier.charAt(0).toUpperCase()}${user.subscription.tier.slice(1)} Plan` : 'No Plan'}
+                      <dd className="mt-1 flex items-center justify-between">
+                        <span className="text-sm text-gray-900 dark:text-white">
+                          {user?.subscription?.tier ? `${user.subscription.tier.charAt(0).toUpperCase()}${user.subscription.tier.slice(1)} Plan` : 'No Plan'}
+                        </span>
+                        <Link
+                          href="/pricing"
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                        >
+                          Upgrade
+                        </Link>
                       </dd>
                     </div>
                   </dl>
