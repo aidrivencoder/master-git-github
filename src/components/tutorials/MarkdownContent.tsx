@@ -1,17 +1,31 @@
 import ReactMarkdown from 'react-markdown'
+import AIAssistant from './AIAssistant'
 
 interface MarkdownContentProps {
   content: string
 }
 
 export function MarkdownContent({ content }: MarkdownContentProps) {
+  // Replace AIAssistant tags with a custom marker that won't be escaped
+  const processedContent = content.replace(
+    /<AIAssistant type="(.*?)">/g,
+    ':::ai-assistant[$1]:::'
+  );
+
   return (
     <div className="prose prose-lg dark:prose-invert max-w-none space-y-6">
       <ReactMarkdown
         components={{
-          p: ({ children }) => (
-            <p className="mb-4 text-gray-800 dark:text-gray-200">{children}</p>
-          ),
+          p: ({ children }) => {
+            // Check if this paragraph contains our custom AI assistant marker
+            if (typeof children === 'string' && children.startsWith(':::ai-assistant[')) {
+              const type = children.match(/\[(.*?)\]/)?.[1];
+              if (type) {
+                return <AIAssistant type={type as 'commit-message' | 'explain-command' | 'review-code'} />;
+              }
+            }
+            return <p className="mb-4 text-gray-800 dark:text-gray-200">{children}</p>;
+          },
           h1: ({ children }) => (
             <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">{children}</h1>
           ),
@@ -42,7 +56,7 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
           )
         }}
       >
-        {content}
+        {processedContent}
       </ReactMarkdown>
     </div>
   )
