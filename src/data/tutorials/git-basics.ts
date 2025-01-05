@@ -50,7 +50,7 @@ Git uses a staging area (also called the index) to track which changes will be i
       `,
       type: 'interactive',
       gitVisualization: {
-        type: 'staging',
+        type: 'commit',
         nodes: [],
         edges: []
       }

@@ -48,7 +48,8 @@ git checkout -b feature-branch
         edges: [
           {
             source: 'main',
-            target: 'feature'
+            target: 'feature',
+            type: 'branch'
           }
         ]
       }
