@@ -25,7 +25,7 @@ export function GitCommandSimulator({ expectedCommand, onSuccess }: GitCommandSi
     setOutput('')
     
     if (command.trim() === expectedCommand.trim()) {
-      setOutput('Command is correct! Click Next to continue.')
+      setOutput('Command is correct!')
       setIsCorrect(true)
     } else {
       setError('Incorrect command. Try again!')
@@ -79,19 +79,6 @@ export function GitCommandSimulator({ expectedCommand, onSuccess }: GitCommandSi
           </div>
         )}
       </div>
-
-      <p className="text-gray-600 dark:text-gray-400 text-sm">
-        Type the command and click &quot;Check&quot; to verify. Once correct, use the Next button to continue.
-      </p>
-
-      {isCorrect && (
-        <button
-          onClick={onSuccess}
-          className="mt-2 px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 font-medium text-sm"
-        >
-          Next
-        </button>
-      )}
     </div>
   )
 }
