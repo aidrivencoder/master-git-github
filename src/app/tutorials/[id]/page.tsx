@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { TutorialPage as ClientTutorialPage } from '@/components/tutorials/TutorialPage'
 import { getTutorialById } from '@/lib/firebase/services/tutorials'
+import { Tutorial } from '@/types/tutorial'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import Link from 'next/link'
 
@@ -72,11 +73,11 @@ function NotFoundState() {
 }
 
 export default function TutorialPage({ params }: TutorialPageProps) {
-  const [tutorial, setTutorial] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [tutorial, setTutorial] = useState<Tutorial | null>(null)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const fetchTutorial = async () => {
+  const fetchTutorial = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -88,11 +89,11 @@ export default function TutorialPage({ params }: TutorialPageProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.id])
 
   useEffect(() => {
     fetchTutorial()
-  }, [params.id])
+  }, [fetchTutorial])
 
   if (loading) {
     return <LoadingState />
@@ -109,6 +110,14 @@ export default function TutorialPage({ params }: TutorialPageProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <ClientTutorialPage tutorial={tutorial} />
+      <div className="text-center">
+        <h2 className="text-3xl font-bold">
+          Let's continue your learning journey
+        </h2>
+      </div>
+      <p className="text-gray-600">
+        You'll need to sign in to track your progress and save your work
+      </p>
     </div>
   )
 }

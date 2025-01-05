@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Tutorial } from '@/types/tutorial'
-import { GitVisualizerV2 } from './GitVisualizerV2'
+import { GitVisualizer } from './GitVisualizer'
 import { GitCommandSimulator } from './GitCommandSimulator'
 import { MarkdownContent } from './MarkdownContent'
 import { ProgressBar } from './ProgressBar'
@@ -17,10 +17,18 @@ export function TutorialViewer({ tutorial }: TutorialViewerProps) {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   const step = tutorial.steps[currentStep]
 
-  const handleStepComplete = () => {
+  const handleStepComplete = async () => {
+    try {
+      await onStepComplete()
+      // Update progress silently
+    } catch (error) {
+      setError('Failed to update progress')
+    }
+
     if (!completedSteps.includes(step.id)) {
       setCompletedSteps([...completedSteps, step.id])
     }
@@ -52,11 +60,11 @@ export function TutorialViewer({ tutorial }: TutorialViewerProps) {
           
           {step.gitVisualization && (
             <div className="my-8">
-              <GitVisualizerV2
+              <GitVisualizer
                 visualization={step.gitVisualization}
                 interactive
                 onNodeClick={(nodeId) => {
-                  console.log('Node clicked:', nodeId)
+                  // Node clicked: nodeId
                 }}
               />
             </div>
@@ -97,4 +105,8 @@ export function TutorialViewer({ tutorial }: TutorialViewerProps) {
       </div>
     </div>
   )
+}
+
+function onStepComplete() {
+  throw new Error('Function not implemented.')
 }

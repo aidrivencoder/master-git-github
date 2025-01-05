@@ -46,10 +46,18 @@ export async function initializeCollections() {
   } catch (error) {
     console.error('Failed to initialize collections:', error)
     
+    if (error instanceof Error) {
+      return {
+        success: false,
+        error: error.message,
+        code: (error as any).code // Firebase errors might have a code property
+      }
+    }
+    
     return {
       success: false,
-      error: error.message,
-      code: error.code
+      error: 'An unknown error occurred',
+      code: 'UNKNOWN'
     }
   }
 }

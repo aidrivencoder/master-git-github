@@ -1,5 +1,5 @@
+import React from 'react'
 import { useState } from 'react'
-import { CodeBlock } from './CodeBlock'
 
 interface GitCommandSimulatorProps {
   expectedCommand: string
@@ -50,9 +50,13 @@ export function GitCommandSimulator({ expectedCommand, onSuccess }: GitCommandSi
         )}
       </div>
 
+      <p className="text-gray-600">
+        Let&apos;s practice some Git commands!
+      </p>
+
       {output && (
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          Great job! You've successfully executed the command.
+          Great job! You&apos;ve successfully executed the command.
         </div>
       )}
     </div>

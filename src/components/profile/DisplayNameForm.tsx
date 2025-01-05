@@ -12,22 +12,18 @@ interface DisplayNameFormProps {
 export function DisplayNameForm({ currentDisplayName, onUpdate }: DisplayNameFormProps) {
   const [displayName, setDisplayName] = useState(currentDisplayName)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
     setSuccess(false)
     setLoading(true)
 
-    const { success, error } = await updateUserDisplayName(displayName)
+    const { success } = await updateUserDisplayName(displayName)
     
     if (success) {
       setSuccess(true)
       onUpdate()
-    } else {
-      setError('Failed to update display name. Please try again.')
     }
     
     setLoading(false)
@@ -35,11 +31,6 @@ export function DisplayNameForm({ currentDisplayName, onUpdate }: DisplayNameFor
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md dark:bg-red-900/50 dark:text-red-400">
-          {error}
-        </div>
-      )}
       
       {success && (
         <div className="p-3 text-sm text-green-600 bg-green-50 rounded-md dark:bg-green-900/50 dark:text-green-400">

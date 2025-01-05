@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Tutorial, TutorialStep } from '@/types/tutorial'
-import { GitVisualizerV2 } from './GitVisualizerV2'
+import { GitVisualizer } from './GitVisualizer'
 import { GitCommandSimulator } from './GitCommandSimulator'
 import { MarkdownContent } from './MarkdownContent'
 import { ProgressBar } from './ProgressBar'
@@ -14,10 +14,20 @@ interface InteractiveTutorialProps {
 export function InteractiveTutorial({ tutorial, onComplete }: InteractiveTutorialProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   const step = tutorial.steps[currentStep]
 
-  const handleStepComplete = () => {
+  const handleStepComplete = async () => {
+    try {
+      if (onComplete) {
+        await onComplete()
+      }
+    } catch (_err) {
+      // Handle error appropriately
+      setError('Failed to update progress')
+    }
+
     if (!completedSteps.includes(step.id)) {
       setCompletedSteps([...completedSteps, step.id])
     }
@@ -28,8 +38,6 @@ export function InteractiveTutorial({ tutorial, onComplete }: InteractiveTutoria
       onComplete()
     }
   }
-
-  const progress = (completedSteps.length / tutorial.steps.length) * 100
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -44,6 +52,11 @@ export function InteractiveTutorial({ tutorial, onComplete }: InteractiveTutoria
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
         <StepContent
           step={step}
           onComplete={handleStepComplete}
@@ -85,11 +98,11 @@ function StepContent({ step, onComplete }: StepContentProps) {
       
       {step.gitVisualization && (
         <div className="my-8">
-          <GitVisualizerV2
+          <GitVisualizer
             visualization={step.gitVisualization}
             interactive
             onNodeClick={(nodeId) => {
-              console.log('Node clicked:', nodeId)
+              // Handle node click if needed
             }}
           />
         </div>
