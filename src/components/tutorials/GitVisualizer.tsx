@@ -2,12 +2,29 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { GitVisualization, GitNode, GitEdge } from '@/types/tutorial'
-import { useTheme } from '@/components/theme/ThemeProvider'
 
 interface GitVisualizerProps {
   visualization: GitVisualization
   interactive?: boolean
   onNodeClick?: (nodeId: string) => void
+}
+
+interface Position {
+  x: number
+  y: number
+}
+
+interface Transform {
+  scale: number
+  offsetX: number
+  offsetY: number
+}
+
+interface Bounds {
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
 }
 
 export function GitVisualizer({
@@ -17,7 +34,56 @@ export function GitVisualizer({
 }: GitVisualizerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [hoveredNode, setHoveredNode] = useState<string | null>(null)
-  const { theme } = useTheme()
+  const [transform, setTransform] = useState<Transform>({ scale: 1, offsetX: 0, offsetY: 0 })
+
+  const getBounds = (nodes: GitNode[]): Bounds => {
+    if (nodes.length === 0) return { minX: 0, maxX: 0, minY: 0, maxY: 0 }
+    
+    return nodes.reduce((bounds, node) => {
+      const pos = getNodePosition(node)
+      return {
+        minX: Math.min(bounds.minX, pos.x),
+        maxX: Math.max(bounds.maxX, pos.x),
+        minY: Math.min(bounds.minY, pos.y),
+        maxY: Math.max(bounds.maxY, pos.y)
+      }
+    }, {
+      minX: Infinity,
+      maxX: -Infinity,
+      minY: Infinity,
+      maxY: -Infinity
+    })
+  }
+
+  const fitContent = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const bounds = getBounds(visualization.nodes)
+    const padding = 50 // Padding around content
+    const contentWidth = bounds.maxX - bounds.minX + padding * 2
+    const contentHeight = bounds.maxY - bounds.minY + padding * 2
+
+    const scaleX = canvas.width / contentWidth
+    const scaleY = canvas.height / contentHeight
+    const scale = Math.min(scaleX, scaleY, 2) // Cap maximum zoom at 2x
+
+    const offsetX = (canvas.width - contentWidth * scale) / 2 - bounds.minX * scale + padding * scale
+    const offsetY = (canvas.height - contentHeight * scale) / 2 - bounds.minY * scale + padding * scale
+
+    setTransform({ scale, offsetX, offsetY })
+  }
+
+  const handleZoom = (delta: number) => {
+    setTransform(prev => {
+      const newScale = Math.max(0.1, Math.min(2, prev.scale + delta))
+      return { ...prev, scale: newScale }
+    })
+  }
+
+  useEffect(() => {
+    fitContent()
+  }, [visualization])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -29,6 +95,11 @@ export function GitVisualizer({
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
+    // Apply transform
+    ctx.save()
+    ctx.translate(transform.offsetX, transform.offsetY)
+    ctx.scale(transform.scale, transform.scale)
+
     // Draw edges first
     visualization.edges.forEach(edge => {
       drawEdge(ctx, edge, visualization.nodes)
@@ -39,15 +110,16 @@ export function GitVisualizer({
       drawNode(ctx, node, node.id === hoveredNode)
     })
 
+    ctx.restore()
+
     const handleMouseMove = (event: MouseEvent) => {
       const canvas = canvasRef.current
       if (!canvas) return
       
       const rect = canvas.getBoundingClientRect()
-      const x = event.clientX - rect.left
-      const y = event.clientY - rect.top
+      const x = (event.clientX - rect.left - transform.offsetX) / transform.scale
+      const y = (event.clientY - rect.top - transform.offsetY) / transform.scale
       
-      // Update hover state based on mouse position
       setHoveredNode(null)
       visualization.nodes.forEach((node) => {
         if (isPointInNode(x, y, node)) {
@@ -61,8 +133,8 @@ export function GitVisualizer({
       if (!canvas || !interactive) return
       
       const rect = canvas.getBoundingClientRect()
-      const x = event.clientX - rect.left
-      const y = event.clientY - rect.top
+      const x = (event.clientX - rect.left - transform.offsetX) / transform.scale
+      const y = (event.clientY - rect.top - transform.offsetY) / transform.scale
       
       visualization.nodes.forEach((node) => {
         if (isPointInNode(x, y, node)) {
@@ -72,29 +144,58 @@ export function GitVisualizer({
     }
 
     if (interactive) {
-      window.addEventListener('mousemove', handleMouseMove)
-      window.addEventListener('click', handleClick)
+      canvas.addEventListener('mousemove', handleMouseMove)
+      canvas.addEventListener('click', handleClick)
     }
 
     return () => {
       if (interactive) {
-        window.removeEventListener('mousemove', handleMouseMove)
-        window.removeEventListener('click', handleClick)
+        canvas.removeEventListener('mousemove', handleMouseMove)
+        canvas.removeEventListener('click', handleClick)
       }
     }
-  }, [visualization, hoveredNode, interactive, onNodeClick, theme])
+  }, [visualization, hoveredNode, interactive, onNodeClick, transform])
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={1000}
-      height={500}
-      className={`w-full transition-all duration-300 ${
-        interactive ? 'cursor-pointer' : ''
-      } ${
-        theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
-      }`}
-    />
+    <div className="relative">
+      <canvas
+        ref={canvasRef}
+        width={1000}
+        height={500}
+        className={`w-full transition-all duration-300 ${
+          interactive ? 'cursor-pointer' : ''
+        } bg-gray-950`}
+      />
+      <div className="absolute bottom-4 right-4 flex gap-2">
+        <button
+          onClick={() => handleZoom(0.1)}
+          className="rounded-full bg-gray-800 p-2 text-white hover:bg-gray-700 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+        <button
+          onClick={() => handleZoom(-0.1)}
+          className="rounded-full bg-gray-800 p-2 text-white hover:bg-gray-700 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+        <button
+          onClick={fitContent}
+          className="rounded-full bg-gray-800 p-2 text-white hover:bg-gray-700 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="7 8 3 12 7 16"></polyline>
+            <polyline points="17 8 21 12 17 16"></polyline>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -103,34 +204,34 @@ function drawNode(
   node: GitNode,
   isHovered: boolean
 ) {
-  const { x, y } = node.position
-  const radius = isHovered ? 24 : 20
-  const shadowBlur = isHovered ? 15 : 10
+  const radius = 20
+  const position = getNodePosition(node)
 
-  // Draw shadow
-  ctx.save()
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
-  ctx.shadowBlur = shadowBlur
-  ctx.shadowOffsetX = 2
-  ctx.shadowOffsetY = 2
+  // Draw node background
   ctx.beginPath()
-  ctx.arc(x, y, radius + 2, 0, 2 * Math.PI)
-  ctx.fillStyle = getNodeColor(node.type, isHovered)
-  ctx.fill()
-  ctx.restore()
-
-  // Draw node
-  ctx.beginPath()
-  ctx.arc(x, y, radius, 0, 2 * Math.PI)
+  ctx.arc(position.x, position.y, radius, 0, Math.PI * 2)
   ctx.fillStyle = getNodeColor(node.type, isHovered)
   ctx.fill()
 
-  // Draw label
-  ctx.fillStyle = isHovered ? '#FFFFFF' : '#F8F8F8'
-  ctx.font = `${isHovered ? 'bold ' : ''}${isHovered ? '15px' : '14px'} system-ui, -apple-system, sans-serif`
+  // Add a subtle glow effect
+  ctx.shadowColor = getNodeColor(node.type, false)
+  ctx.shadowBlur = 10
+
+  // Draw node border
+  ctx.strokeStyle = '#ffffff40'
+  ctx.lineWidth = 2
+  ctx.stroke()
+
+  // Reset shadow
+  ctx.shadowColor = 'transparent'
+  ctx.shadowBlur = 0
+
+  // Draw node label
+  ctx.fillStyle = '#ffffff'
+  ctx.font = '14px monospace'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(node.label, x, y)
+  ctx.fillText(node.label || node.id.substring(0, 7), position.x, position.y)
 }
 
 function drawEdge(
@@ -138,49 +239,67 @@ function drawEdge(
   edge: GitEdge,
   nodes: GitNode[]
 ) {
-  const sourceNode = nodes.find(n => n.id === edge.source)
-  const targetNode = nodes.find(n => n.id === edge.target)
-
-  if (!sourceNode || !targetNode) return
-
+  const startNode = nodes.find(n => n.id === edge.source)
+  const endNode = nodes.find(n => n.id === edge.target)
+  
+  if (!startNode || !endNode) return
+  
+  const startPos = getNodePosition(startNode)
+  const endPos = getNodePosition(endNode)
+  
   ctx.beginPath()
-  ctx.moveTo(sourceNode.position.x, sourceNode.position.y)
-  ctx.lineTo(targetNode.position.x, targetNode.position.y)
+  ctx.moveTo(startPos.x, startPos.y)
+  ctx.lineTo(endPos.x, endPos.y)
   ctx.strokeStyle = getEdgeColor(edge.type)
-  ctx.lineWidth = 3
-  ctx.lineCap = 'round'
+  ctx.lineWidth = 2
   ctx.stroke()
+}
+
+function getNodePosition(node: GitNode): Position {
+  return {
+    x: node.position?.x || 0,
+    y: node.position?.y || 0
+  }
 }
 
 function findNodeAtPosition(x: number, y: number, nodes: GitNode[]): string | null {
   const radius = 20
   return nodes.find(node => {
-    const dx = x - node.position.x
-    const dy = y - node.position.y
+    const pos = getNodePosition(node)
+    const dx = x - pos.x
+    const dy = y - pos.y
     return dx * dx + dy * dy <= radius * radius
   })?.id || null
 }
 
 function isPointInNode(x: number, y: number, node: GitNode): boolean {
-  const dx = x - node.position.x
-  const dy = y - node.position.y
+  const pos = getNodePosition(node)
+  const dx = x - pos.x
+  const dy = y - pos.y
   const radius = 20
   return dx * dx + dy * dy <= radius * radius
 }
 
 function getNodeColor(type: GitNode['type'], isHovered: boolean): string {
-  const baseColors = {
-    commit: '#22c55e',
-    branch: '#3b82f6',
-    tag: '#eab308'
+  let baseColor = ''
+  switch (type) {
+    case 'commit':
+      baseColor = '#4ade80'
+      break
+    case 'branch':
+      baseColor = '#60a5fa'
+      break
+    case 'tag':
+      baseColor = '#f472b6'
+      break
+    default:
+      baseColor = '#94a3b8'
   }
-
-  const color = baseColors[type] || '#9E9E9E'
-  return isHovered ? adjustColorBrightness(color, 20) : color
+  return isHovered ? adjustColorBrightness(baseColor, 20) : baseColor
 }
 
 function getEdgeColor(type: GitEdge['type']): string {
-  return type === 'commit' ? '#64748b' : '#3b82f6'
+  return '#ffffff40'
 }
 
 function adjustColorBrightness(color: string, percent: number): string {
