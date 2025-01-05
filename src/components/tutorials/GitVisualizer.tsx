@@ -92,8 +92,9 @@ export function GitVisualizer({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    // Clear canvas and set background
+    ctx.fillStyle = '#111827'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
 
     // Apply transform
     ctx.save()
