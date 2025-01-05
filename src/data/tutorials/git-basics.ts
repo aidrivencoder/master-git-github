@@ -27,6 +27,7 @@ git init
 This command creates a new Git repository in your current directory.
       `,
       type: 'interactive',
+      expectedCommand: 'git init',
       gitVisualization: {
         type: 'commit',
         nodes: [
@@ -47,8 +48,23 @@ This command creates a new Git repository in your current directory.
 # Understanding the Staging Area
 
 Git uses a staging area (also called the index) to track which changes will be included in the next commit.
+
+To add files to the staging area, use:
+
+\`\`\`bash
+git add <filename>
+\`\`\`
+
+To stage all changes, use:
+
+\`\`\`bash
+git add .
+\`\`\`
+
+Let's practice staging all changes:
       `,
       type: 'interactive',
+      expectedCommand: 'git add .',
       gitVisualization: {
         type: 'commit',
         nodes: [],

@@ -16,6 +16,7 @@ export interface TutorialStep {
   type: 'text' | 'video' | 'interactive'
   gitVisualization?: GitVisualization
   quiz?: Quiz
+  expectedCommand?: string
 }
 
 export interface GitVisualization {

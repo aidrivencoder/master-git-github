@@ -64,7 +64,8 @@ export function TutorialViewer({ tutorial }: TutorialViewerProps) {
               </div>
             </div>
             
-            {step.gitVisualization && (
+            {step.gitVisualization && (step.gitVisualization.nodes.length > 0
+              || step.gitVisualization.edges.length > 0) && (
               <div className="my-8">
                 <GitVisualizer
                   visualization={step.gitVisualization}
@@ -76,9 +77,10 @@ export function TutorialViewer({ tutorial }: TutorialViewerProps) {
               </div>
             )}
             
-            {step.type === 'interactive' && (
+            {step.type === 'interactive' && step.expectedCommand && (
               <GitCommandSimulator
-                expectedCommand="git init"
+                key={step.id}
+                expectedCommand={step.expectedCommand}
                 onSuccess={handleStepComplete}
               />
             )}

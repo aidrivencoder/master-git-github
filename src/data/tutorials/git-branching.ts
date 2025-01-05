@@ -27,8 +27,52 @@ git checkout feature-branch
 # Or use the shorthand:
 git checkout -b feature-branch
 \`\`\`
+
+Let's create a new feature branch using the shorthand command:
       `,
       type: 'interactive',
+      expectedCommand: 'git checkout -b feature-branch',
+      gitVisualization: {
+        type: 'branch',
+        nodes: [
+          {
+            id: 'main',
+            type: 'branch',
+            label: 'main',
+            position: { x: 100, y: 100 }
+          },
+          {
+            id: 'feature',
+            type: 'branch',
+            label: 'feature-branch',
+            position: { x: 200, y: 150 }
+          }
+        ],
+        edges: [
+          {
+            source: 'main',
+            target: 'feature',
+            type: 'branch'
+          }
+        ]
+      }
+    },
+    {
+      id: 'switch-branch',
+      title: 'Switching Branches',
+      content: `
+# Switching Between Branches
+
+You can switch between branches using the checkout command:
+
+\`\`\`bash
+git checkout <branch-name>
+\`\`\`
+
+Let's switch back to the main branch:
+      `,
+      type: 'interactive',
+      expectedCommand: 'git checkout main',
       gitVisualization: {
         type: 'branch',
         nodes: [
