@@ -49,6 +49,7 @@ export function TutorialViewer({ tutorial }: TutorialViewerProps) {
           currentStep={currentStep}
           totalSteps={tutorial.steps.length}
           onStepClick={(step) => setCurrentStep(step)}
+          tutorial={tutorial}
         />
       </div>
 
