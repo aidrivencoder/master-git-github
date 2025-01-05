@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { TutorialPage as ClientTutorialPage } from '@/components/tutorials/TutorialPage'
-import { getTutorialById } from '@/lib/firebase/services/tutorials'
+import { getTutorial } from '@/data/tutorials'
 import { Tutorial } from '@/types/tutorial'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import Link from 'next/link'
@@ -74,50 +74,42 @@ function NotFoundState() {
 
 export default function TutorialPage({ params }: TutorialPageProps) {
   const [tutorial, setTutorial] = useState<Tutorial | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchTutorial = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+  const loadTutorial = useCallback(() => {
     try {
-      const fetchedTutorial = await getTutorialById(params.id)
-      setTutorial(fetchedTutorial)
+      const foundTutorial = getTutorial(params.id)
+      if (foundTutorial) {
+        setTutorial(foundTutorial)
+        setError(null)
+      } else {
+        setTutorial(null)
+        setError('Tutorial not found')
+      }
     } catch (err) {
       setError('Failed to load tutorial')
-      console.error('Error fetching tutorial:', err)
+      console.error('Error loading tutorial:', err)
     } finally {
       setLoading(false)
     }
   }, [params.id])
 
   useEffect(() => {
-    fetchTutorial()
-  }, [fetchTutorial])
+    loadTutorial()
+  }, [loadTutorial])
 
   if (loading) {
     return <LoadingState />
   }
 
-  if (error) {
-    return <ErrorState message={error} onRetry={fetchTutorial} />
-  }
-
-  if (!tutorial) {
+  if (error === 'Tutorial not found') {
     return <NotFoundState />
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <ClientTutorialPage tutorial={tutorial} />
-      <div className="text-center">
-        <h2 className="text-3xl font-bold">
-          Let's continue your learning journey
-        </h2>
-      </div>
-      <p className="text-gray-600">
-        You'll need to sign in to track your progress and save your work
-      </p>
-    </div>
-  )
+  if (error) {
+    return <ErrorState message={error} onRetry={loadTutorial} />
+  }
+
+  return tutorial ? <ClientTutorialPage tutorial={tutorial} /> : null
 }

@@ -42,7 +42,7 @@ export function TutorialViewer({ tutorial }: TutorialViewerProps) {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">{tutorial.title}</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">{tutorial.title}</h1>
       
       <div className="mb-8">
         <ProgressBar
@@ -54,53 +54,59 @@ export function TutorialViewer({ tutorial }: TutorialViewerProps) {
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
         <div className="space-y-8">
-          <h2 className="text-2xl font-semibold">{step.title}</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{step.title}</h2>
           
-          <MarkdownContent content={step.content} />
-          
-          {step.gitVisualization && (
-            <div className="my-8">
-              <GitVisualizer
-                visualization={step.gitVisualization}
-                interactive
-                onNodeClick={(nodeId) => {
-                  // Node clicked: nodeId
-                }}
-              />
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <div className="prose prose-lg dark:prose-invert max-w-none">
+                <MarkdownContent content={step.content} />
+              </div>
             </div>
-          )}
-          
-          {step.type === 'interactive' && (
-            <GitCommandSimulator
-              expectedCommand="git init"
-              onSuccess={handleStepComplete}
-            />
-          )}
-          
-          {step.quiz && (
-            <Quiz
-              quiz={step.quiz}
-              onComplete={handleStepComplete}
-            />
-          )}
-        </div>
+            
+            {step.gitVisualization && (
+              <div className="my-8">
+                <GitVisualizer
+                  visualization={step.gitVisualization}
+                  interactive
+                  onNodeClick={(nodeId) => {
+                    // Node clicked: nodeId
+                  }}
+                />
+              </div>
+            )}
+            
+            {step.type === 'interactive' && (
+              <GitCommandSimulator
+                expectedCommand="git init"
+                onSuccess={handleStepComplete}
+              />
+            )}
+            
+            {step.quiz && (
+              <Quiz
+                quiz={step.quiz}
+                onComplete={handleStepComplete}
+              />
+            )}
+          </div>
 
-        <div className="mt-8 flex justify-between">
-          <button
-            onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
-            disabled={currentStep === 0}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-          >
-            Previous
-          </button>
-          
-          <button
-            onClick={() => setCurrentStep(Math.min(tutorial.steps.length - 1, currentStep + 1))}
-            disabled={currentStep === tutorial.steps.length - 1}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50"
-          >
-            Next
-          </button>
+          <div className="mt-8 flex justify-between">
+            <button
+              onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+              disabled={currentStep === 0}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            
+            <button
+              onClick={() => setCurrentStep(Math.min(tutorial.steps.length - 1, currentStep + 1))}
+              disabled={currentStep === tutorial.steps.length - 1}
+              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>

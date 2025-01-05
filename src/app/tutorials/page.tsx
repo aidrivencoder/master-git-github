@@ -5,8 +5,7 @@ import { useAuth } from '@/components/providers/AuthProvider'
 import { Tutorial } from '@/types/tutorial'
 import { TutorialCard } from '@/components/tutorials/TutorialCard'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { getTutorials, getPublicTutorials } from '@/lib/firebase/services/tutorials'
-import { initializeTutorials } from '@/lib/firebase/services/initializeTutorials'
+import { getAllTutorials, getPublicTutorials } from '@/data/tutorials'
 
 export default function TutorialsPage() {
   const { user } = useAuth()
@@ -17,11 +16,8 @@ export default function TutorialsPage() {
   useEffect(() => {
     async function fetchTutorials() {
       try {
-        // Initialize tutorials if they don't exist
-        await initializeTutorials()
-        
-        const fetchedTutorials = user ? await getTutorials() : await getPublicTutorials()
-        setTutorials(fetchedTutorials)
+        const loadedTutorials = user ? getAllTutorials() : getPublicTutorials()
+        setTutorials(loadedTutorials)
       } catch (err) {
         setError('Failed to load tutorials')
         console.error('Error fetching tutorials:', err)

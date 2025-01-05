@@ -1,6 +1,5 @@
 import dynamic from 'next/dynamic'
 import '@uiw/react-markdown-preview/markdown.css'
-import { CodeBlock } from './CodeBlock'
 import React from 'react'
 
 const MarkdownPreview = dynamic(
@@ -12,31 +11,15 @@ interface MarkdownContentProps {
   content: string
 }
 
-interface CodeProps {
-  inline?: boolean
-  children?: React.ReactNode
-  className?: string
-}
-
 export function MarkdownContent({ content }: MarkdownContentProps) {
   return (
     <div className="prose prose-lg dark:prose-invert max-w-none">
       <MarkdownPreview
         source={content}
-        components={{
-          code: ({ inline, children, className }: CodeProps) => {
-            if (inline) {
-              return <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">{children}</code>
-            }
-            const language = className?.replace('language-', '') || 'text'
-            return (
-              <CodeBlock
-                code={String(children).replace(/\n$/, '')}
-                language={language}
-              />
-            )
-          }
+        wrapperElement={{
+          "data-color-mode": "dark"
         }}
+        className="p-6 bg-white dark:bg-gray-900 rounded-lg shadow-sm"
       />
     </div>
   )

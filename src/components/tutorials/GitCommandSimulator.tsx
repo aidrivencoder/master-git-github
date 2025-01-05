@@ -38,19 +38,19 @@ export function GitCommandSimulator({ expectedCommand, onSuccess }: GitCommandSi
         </form>
         
         {output && (
-          <div className="mt-2 text-green-400">
+          <div className="mt-2 text-green-400 dark:text-green-300">
             {output}
           </div>
         )}
         
         {error && (
-          <div className="mt-2 text-red-400">
+          <div className="mt-2 text-red-400 dark:text-red-300">
             {error}
           </div>
         )}
       </div>
 
-      <p className="text-gray-600">
+      <p className="text-gray-600 dark:text-gray-400">
         Let&apos;s practice some Git commands!
       </p>
 

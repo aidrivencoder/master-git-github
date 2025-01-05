@@ -1,7 +1,7 @@
 # Todo List
 
 - [*] Clean up dead codes
-- [ ] Fix build issues due to type issues
+- [*] Fix build issues due to type issues
 - [ ] Fix UI issues
   - [ ] Appearance switcher does not work
 - [*] Remove unused components
