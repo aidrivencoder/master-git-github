@@ -11,7 +11,7 @@ import {
 import { db } from '../config'
 import { Tutorial } from '@/types/tutorial'
 import { Logger } from '@/lib/utils/logger'
-import { tutorialsList } from '@/lib/tutorials'
+import { tutorials } from '@/data/tutorials'
 
 const TUTORIALS_COLLECTION = 'tutorials'
 
@@ -23,7 +23,7 @@ async function ensureInitialized() {
     if (snapshot.empty) {
       Logger.info('Initializing tutorials collection', 'TutorialService')
       await Promise.all(
-        tutorialsList.map(tutorial => 
+        tutorials.map(tutorial => 
           setDoc(doc(tutorialsRef, tutorial.id), {
             ...tutorial,
             createdAt: serverTimestamp(),
@@ -44,7 +44,7 @@ export async function initializeTutorials() {
     
     if (snapshot.empty) {
       Logger.info('Initializing tutorials collection', 'TutorialService')
-      const initPromises = tutorialsList.map(tutorial => 
+      const initPromises = tutorials.map(tutorial => 
         setDoc(doc(tutorialsRef, tutorial.id), {
           ...tutorial,
           createdAt: serverTimestamp(),
